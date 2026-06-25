@@ -13,5 +13,6 @@
   "background": {
     "service_worker": "background.js"
   },
-  "host_permissions": ["https://translate.googleapis.com/*"]
+  "permissions": ["scripting"],
+  "host_permissions": ["https://translate.googleapis.com/*", "https://www.netflix.com/*"]
 }

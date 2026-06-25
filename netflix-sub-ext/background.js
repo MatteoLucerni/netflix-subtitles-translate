@@ -2,6 +2,17 @@ console.log("[NSE] background service worker loaded");
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   console.log("[NSE] background received message", msg);
+
+  if (msg?.type === "seekNetflixPlayer") {
+    seekNetflixPlayer(sender.tab?.id, msg.timeMs)
+      .then((result) => sendResponse(result))
+      .catch((err) => {
+        console.log("[NSE] seekNetflixPlayer failed", err);
+        sendResponse({ ok: false, error: String(err) });
+      });
+    return true;
+  }
+
   if (msg?.type !== "translate") return;
   if (typeof msg.word !== "string" || !msg.word.trim()) {
     console.log("[NSE] invalid word, rejecting");
@@ -19,6 +30,30 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     });
   return true;
 });
+
+async function seekNetflixPlayer(tabId, timeMs) {
+  if (!tabId) return { ok: false, error: "no tabId" };
+
+  const results = await chrome.scripting.executeScript({
+    target: { tabId },
+    world: "MAIN",
+    func: (timeMsArg) => {
+      try {
+        const videoPlayer = window.netflix?.appContext?.state?.playerApp?.getAPI()?.videoPlayer;
+        const sessionId = videoPlayer?.getAllPlayerSessionIds()?.[0];
+        const player = sessionId !== undefined ? videoPlayer.getVideoPlayerBySessionId(sessionId) : null;
+        if (!player) return { ok: false, error: "player not found" };
+        player.seek(timeMsArg);
+        return { ok: true };
+      } catch (err) {
+        return { ok: false, error: String(err) };
+      }
+    },
+    args: [timeMs]
+  });
+
+  return results?.[0]?.result ?? { ok: false, error: "no result" };
+}
 
 async function translate(word) {
   const url = new URL("https://translate.googleapis.com/translate_a/single");

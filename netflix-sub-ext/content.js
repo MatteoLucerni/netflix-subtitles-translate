@@ -40,8 +40,27 @@
   let selectionTimer = null;
   const SELECTION_DEBOUNCE_MS = 1200;
 
+  let cueHistory = [];
+  let cueIndex = -1;
+  let suppressHistoryCapture = false;
+  let suppressHistoryCaptureTimer = null;
+  let pausePendingAfterSeek = false;
+  let pausePendingTimer = null;
+  const CUE_HISTORY_EPSILON_SEC = 0.05;
+
   function getVideo() {
     return document.querySelector("video");
+  }
+
+  async function seekNetflixPlayer(timeMs) {
+    try {
+      const result = await chrome.runtime.sendMessage({ type: "seekNetflixPlayer", timeMs });
+      log("seekNetflixPlayer: result", result);
+      return !!result?.ok;
+    } catch (err) {
+      log("seekNetflixPlayer: message failed", err);
+      return false;
+    }
   }
 
   function getAppendTarget() {
@@ -267,6 +286,7 @@
     const incoming = lineContainers.map((lineEl) => ({ lineEl, text: getLineText(lineEl) }));
     const usedOldIndexes = new Set();
     const newActiveLines = [];
+    let hasNewCue = false;
 
     for (const { lineEl, text } of incoming) {
       const matchIndex = activeLines.findIndex(
@@ -282,6 +302,7 @@
         newActiveLines.push(line);
       } else {
         log("reconcileLines: new/changed text", JSON.stringify(text));
+        hasNewCue = true;
         const overlay = createOverlay(lineEl);
         overlay.replaceChildren(...buildTokens(text));
         lineEl.style.visibility = "hidden";
@@ -295,6 +316,78 @@
 
     activeLines = newActiveLines;
     positionOverlayGroup(activeLines);
+
+    if (hasNewCue) {
+      recordCueStart();
+      if (pausePendingAfterSeek) {
+        pausePendingAfterSeek = false;
+        clearTimeout(pausePendingTimer);
+        log("reconcileLines: target cue rendered, pausing now");
+        getVideo()?.pause();
+      }
+    }
+  }
+
+  function recordCueStart() {
+    if (suppressHistoryCapture) {
+      suppressHistoryCapture = false;
+      clearTimeout(suppressHistoryCaptureTimer);
+      log("recordCueStart: suppressed (consumed)");
+      return;
+    }
+    const video = getVideo();
+    if (!video) return;
+
+    const time = video.currentTime;
+    const last = cueHistory[cueHistory.length - 1];
+    if (last && Math.abs(last.time - time) < CUE_HISTORY_EPSILON_SEC) {
+      log("recordCueStart: deduped, too close to last entry", time, last.time);
+      return;
+    }
+
+    cueHistory.push({ time });
+    cueIndex = cueHistory.length - 1;
+    log("recordCueStart: pushed", time, "cueIndex", cueIndex, "historyLength", cueHistory.length);
+  }
+
+  async function jumpToPreviousCue() {
+    log("jumpToPreviousCue: called, cueIndex", cueIndex, "historyLength", cueHistory.length);
+    if (cueIndex <= 0) {
+      log("jumpToPreviousCue: no earlier cue available, aborting");
+      return;
+    }
+    const video = getVideo();
+    if (!video) {
+      log("jumpToPreviousCue: no video element found, aborting");
+      return;
+    }
+
+    cueIndex -= 1;
+    const target = cueHistory[cueIndex];
+    log("jumpToPreviousCue: target", target, "new cueIndex", cueIndex);
+
+    cancelSelection();
+    removePopup();
+
+    suppressHistoryCapture = true;
+    clearTimeout(suppressHistoryCaptureTimer);
+    suppressHistoryCaptureTimer = setTimeout(() => { suppressHistoryCapture = false; }, 2000);
+
+    pausePendingAfterSeek = true;
+    clearTimeout(pausePendingTimer);
+    pausePendingTimer = setTimeout(() => {
+      if (!pausePendingAfterSeek) return;
+      pausePendingAfterSeek = false;
+      log("jumpToPreviousCue: safety timeout, pausing without waiting for cue render");
+      getVideo()?.pause();
+    }, 1500);
+
+    const timeMs = Math.max(0, Math.round(target.time * 1000));
+    const seeked = await seekNetflixPlayer(timeMs);
+    if (!seeked) {
+      log("jumpToPreviousCue: falling back to video.currentTime");
+      video.currentTime = target.time;
+    }
   }
 
   function removeAllOverlays() {
@@ -763,6 +856,23 @@
     });
     bodyObserver.observe(document.body, { childList: true, subtree: true });
   }
+
+  function onGlobalKeydown(e) {
+    if (e.key !== "ArrowLeft") return;
+    log("onGlobalKeydown: ArrowLeft detected", "repeat", e.repeat, "target", e.target);
+    if (e.repeat) return;
+    if (e.target instanceof HTMLElement) {
+      const tag = e.target.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
+    }
+    if (!getVideo()) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+    jumpToPreviousCue();
+  }
+
+  document.addEventListener("keydown", onGlobalKeydown, { capture: true });
 
   window.addEventListener("resize", repositionAllOverlays);
 

@@ -44,9 +44,11 @@
   let cueIndex = -1;
   let suppressHistoryCapture = false;
   let suppressHistoryCaptureTimer = null;
-  let pausePendingAfterSeek = false;
-  let pausePendingTimer = null;
+  let pauseScheduleCleanup = null;
+  let pauseScheduleTimer = null;
   const CUE_HISTORY_EPSILON_SEC = 0.05;
+  const PAUSE_BEFORE_NEXT_CUE_SEC = 0.05;
+  const PAUSE_SCHEDULE_SAFETY_MS = 15000;
 
   function getVideo() {
     return document.querySelector("video");
@@ -287,6 +289,7 @@
     const usedOldIndexes = new Set();
     const newActiveLines = [];
     let hasNewCue = false;
+    let hasRemovedCue = false;
 
     for (const { lineEl, text } of incoming) {
       const matchIndex = activeLines.findIndex(
@@ -311,21 +314,26 @@
     }
 
     for (let i = 0; i < activeLines.length; i++) {
-      if (!usedOldIndexes.has(i)) activeLines[i].overlay.remove();
+      if (!usedOldIndexes.has(i)) {
+        activeLines[i].overlay.remove();
+        hasRemovedCue = true;
+      }
     }
 
     activeLines = newActiveLines;
     positionOverlayGroup(activeLines);
 
-    if (hasNewCue) {
-      recordCueStart();
-      if (pausePendingAfterSeek) {
-        pausePendingAfterSeek = false;
-        clearTimeout(pausePendingTimer);
-        log("reconcileLines: target cue rendered, pausing now");
-        getVideo()?.pause();
-      }
-    }
+    if (hasRemovedCue) markCueEnded();
+    if (hasNewCue) recordCueStart();
+  }
+
+  function markCueEnded() {
+    const video = getVideo();
+    if (!video) return;
+    const last = cueHistory[cueHistory.length - 1];
+    if (!last || last.endTime != null) return;
+    last.endTime = video.currentTime;
+    log("markCueEnded: endTime", last.endTime, "for cue started at", last.time);
   }
 
   function recordCueStart() {
@@ -345,9 +353,45 @@
       return;
     }
 
-    cueHistory.push({ time });
+    cueHistory.push({ time, endTime: null });
     cueIndex = cueHistory.length - 1;
     log("recordCueStart: pushed", time, "cueIndex", cueIndex, "historyLength", cueHistory.length);
+  }
+
+  function clearPauseSchedule() {
+    if (pauseScheduleCleanup) {
+      pauseScheduleCleanup();
+      pauseScheduleCleanup = null;
+    }
+    clearTimeout(pauseScheduleTimer);
+    pauseScheduleTimer = null;
+  }
+
+  function schedulePauseBeforeTime(endTime) {
+    const video = getVideo();
+    if (!video) return;
+    clearPauseSchedule();
+
+    let rafId = null;
+    const check = () => {
+      if (video.currentTime >= endTime - PAUSE_BEFORE_NEXT_CUE_SEC) {
+        clearPauseSchedule();
+        video.pause();
+        log("schedulePauseBeforeTime: paused at end of previous cue", video.currentTime);
+        return;
+      }
+      rafId = requestAnimationFrame(check);
+    };
+    rafId = requestAnimationFrame(check);
+    pauseScheduleCleanup = () => {
+      if (rafId !== null) cancelAnimationFrame(rafId);
+    };
+
+    pauseScheduleTimer = setTimeout(() => {
+      clearPauseSchedule();
+      video.pause();
+      log("schedulePauseBeforeTime: safety timeout fallback pause");
+    }, PAUSE_SCHEDULE_SAFETY_MS);
   }
 
   async function jumpToPreviousCue() {
@@ -373,24 +417,24 @@
     clearTimeout(suppressHistoryCaptureTimer);
     suppressHistoryCaptureTimer = setTimeout(() => { suppressHistoryCapture = false; }, 2000);
 
-    pausePendingAfterSeek = true;
-    clearTimeout(pausePendingTimer);
-    pausePendingTimer = setTimeout(() => {
-      if (!pausePendingAfterSeek) return;
-      pausePendingAfterSeek = false;
-      log("jumpToPreviousCue: safety timeout, pausing without waiting for cue render");
-      getVideo()?.pause();
-    }, 1500);
-
     const timeMs = Math.max(0, Math.round(target.time * 1000));
     const seeked = await seekNetflixPlayer(timeMs);
     if (!seeked) {
       log("jumpToPreviousCue: falling back to video.currentTime");
       video.currentTime = target.time;
     }
+
+    video.play().catch((err) => log("jumpToPreviousCue: video.play() rejected", err));
+
+    if (target.endTime != null) {
+      schedulePauseBeforeTime(target.endTime);
+    } else {
+      video.pause();
+    }
   }
 
   function removeAllOverlays() {
+    if (activeLines.length > 0) markCueEnded();
     for (const line of activeLines) line.overlay.remove();
     activeLines = [];
   }

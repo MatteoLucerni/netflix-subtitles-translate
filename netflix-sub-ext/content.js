@@ -362,6 +362,18 @@
     resyncSubtitles();
   }
 
+  function trailingAttached(text) {
+    return text.match(/\S+$/)?.[0] ?? "";
+  }
+
+  function leadingAttached(text) {
+    return text.match(/^\S+/)?.[0] ?? "";
+  }
+
+  function isTerminalPunctuation(text) {
+    return text.length > 0 && /^[.!?)\]"'»›]+$/.test(text);
+  }
+
   function collectRange(startSpan, endSpan) {
     const overlays = getOrderedOverlays();
     const startOverlay = startSpan.closest(".nse-overlay");
@@ -386,6 +398,11 @@
       if (from === -1 || to === -1) continue;
       if (from > to) [from, to] = [to, from];
 
+      if (i === fromIdx && from > 0) {
+        const sibling = children[from - 1];
+        if (sibling.nodeType === Node.TEXT_NODE) text += trailingAttached(sibling.textContent);
+      }
+
       if (i > fromIdx) text += " ";
       for (let j = from; j <= to; j++) {
         const node = children[j];
@@ -393,6 +410,14 @@
           selectedWordSpans.push(node);
         }
         text += node.textContent;
+      }
+
+      if (i === toIdx && to < children.length - 1) {
+        const sibling = children[to + 1];
+        if (sibling.nodeType === Node.TEXT_NODE) {
+          const attached = leadingAttached(sibling.textContent);
+          if (isTerminalPunctuation(attached)) text += attached;
+        }
       }
     }
 

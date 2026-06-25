@@ -26,6 +26,10 @@
 
   let extensionPaused = false;
   let wasPlayingBeforePause = false;
+  let selectionStart = null;
+  let selectionEnd = null;
+  let selectionTimer = null;
+  const SELECTION_DEBOUNCE_MS = 1200;
 
   function getVideo() {
     return document.querySelector("video");
@@ -276,6 +280,135 @@
     cleanupStaleOverlays(seenLines);
   }
 
+  function getOrderedOverlays() {
+    return [...lineState.values()]
+      .map((state) => state.overlay)
+      .filter((overlay) => overlay.isConnected)
+      .sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top);
+  }
+
+  function getOrderedWordSpans() {
+    const spans = [];
+    for (const overlay of getOrderedOverlays()) {
+      spans.push(...overlay.querySelectorAll(".nse-word"));
+    }
+    return spans;
+  }
+
+  function stopAccumulating() {
+    clearTimeout(selectionTimer);
+    selectionTimer = null;
+    selectionStart = null;
+    selectionEnd = null;
+    document.removeEventListener("click", onSelectionOutsideClick, { capture: true });
+    document.removeEventListener("keydown", onSelectionEscape);
+  }
+
+  function cancelSelection() {
+    stopAccumulating();
+    for (const span of document.querySelectorAll(".nse-word.selected")) {
+      span.classList.remove("selected");
+    }
+  }
+
+  function collectRange(startSpan, endSpan) {
+    const overlays = getOrderedOverlays();
+    const startOverlay = startSpan.closest(".nse-overlay");
+    const endOverlay = endSpan.closest(".nse-overlay");
+    const startOverlayIdx = overlays.indexOf(startOverlay);
+    const endOverlayIdx = overlays.indexOf(endOverlay);
+    if (startOverlayIdx === -1 || endOverlayIdx === -1) return null;
+
+    const fromIdx = Math.min(startOverlayIdx, endOverlayIdx);
+    const toIdx = Math.max(startOverlayIdx, endOverlayIdx);
+    const fromSpan = startOverlayIdx <= endOverlayIdx ? startSpan : endSpan;
+    const toSpan = startOverlayIdx <= endOverlayIdx ? endSpan : startSpan;
+
+    const selectedWordSpans = [];
+    let text = "";
+
+    for (let i = fromIdx; i <= toIdx; i++) {
+      const overlay = overlays[i];
+      const children = [...overlay.childNodes];
+      let from = i === fromIdx ? children.indexOf(fromSpan) : 0;
+      let to = i === toIdx ? children.indexOf(toSpan) : children.length - 1;
+      if (from === -1 || to === -1) continue;
+      if (from > to) [from, to] = [to, from];
+
+      if (i > fromIdx) text += " ";
+      for (let j = from; j <= to; j++) {
+        const node = children[j];
+        if (node.nodeType === Node.ELEMENT_NODE && node.classList.contains("nse-word")) {
+          selectedWordSpans.push(node);
+        }
+        text += node.textContent;
+      }
+    }
+
+    return { selectedWordSpans, text: text.trim().replace(/\s+/g, " ") };
+  }
+
+  function onSelectionOutsideClick(e) {
+    if (e.target.closest(".nse-word")) return;
+    cancelSelection();
+    if (!isPopupOpen()) releaseInteraction();
+  }
+
+  function onSelectionEscape(e) {
+    if (e.key !== "Escape") return;
+    cancelSelection();
+    if (!isPopupOpen()) releaseInteraction();
+  }
+
+  async function translateAndShowPhrase(text, anchorRect) {
+    let result;
+    try {
+      result = await chrome.runtime.sendMessage({ type: "translate", word: text });
+      log("translate response", result);
+    } catch (err) {
+      log("translate request threw", err);
+      result = { error: true };
+    }
+    showPopup(anchorRect, result);
+  }
+
+  function finalizeSelection(anchorRect) {
+    const range = selectionStart && selectionEnd ? collectRange(selectionStart, selectionEnd) : null;
+    stopAccumulating();
+    if (!range || !range.text) return;
+    translateAndShowPhrase(range.text, anchorRect);
+  }
+
+  function onWordCtrlClick(span) {
+    pauseForInteraction();
+    clearTimeout(selectionTimer);
+
+    const orderedSpans = getOrderedWordSpans();
+    const clickedIdx = orderedSpans.indexOf(span);
+    if (clickedIdx === -1) return;
+
+    const indices = [clickedIdx];
+    const startIdx = selectionStart ? orderedSpans.indexOf(selectionStart) : -1;
+    const endIdx = selectionEnd ? orderedSpans.indexOf(selectionEnd) : -1;
+    if (startIdx !== -1) indices.push(startIdx);
+    if (endIdx !== -1) indices.push(endIdx);
+
+    selectionStart = orderedSpans[Math.min(...indices)];
+    selectionEnd = orderedSpans[Math.max(...indices)];
+
+    const range = collectRange(selectionStart, selectionEnd);
+    for (const wordSpan of orderedSpans) wordSpan.classList.remove("selected");
+    if (range) {
+      for (const wordSpan of range.selectedWordSpans) wordSpan.classList.add("selected");
+    }
+
+    document.addEventListener("click", onSelectionOutsideClick, { capture: true });
+    document.addEventListener("keydown", onSelectionEscape);
+
+    const anchorRect = span.getBoundingClientRect();
+    selectionTimer = setTimeout(() => finalizeSelection(anchorRect), SELECTION_DEBOUNCE_MS);
+  }
+
   async function onWordClick(e) {
     log("overlay click", e.target);
     const span = e.target.closest(".nse-word");
@@ -285,12 +418,20 @@
     }
 
     e.stopPropagation();
+
+    if (e.ctrlKey) {
+      onWordCtrlClick(span);
+      return;
+    }
+
+    cancelSelection();
     pauseForInteraction();
 
     const word = span.dataset.word.replace(NON_WORD_CHAR_REGEX, "");
     log("word clicked", word);
     if (!word) return;
 
+    span.classList.add("selected");
     const anchorRect = span.getBoundingClientRect();
 
     let result;
@@ -431,14 +572,40 @@
     if (list.children.length > 0) popup.appendChild(list);
   }
 
+  function getSubtitleBoundsRect() {
+    let top = Infinity;
+    let left = Infinity;
+    let right = -Infinity;
+    let bottom = -Infinity;
+    let found = false;
+
+    for (const [, state] of lineState) {
+      if (!state.overlay.isConnected) continue;
+      const rect = state.overlay.getBoundingClientRect();
+      if (rect.width === 0 && rect.height === 0) continue;
+      found = true;
+      top = Math.min(top, rect.top);
+      left = Math.min(left, rect.left);
+      right = Math.max(right, rect.right);
+      bottom = Math.max(bottom, rect.bottom);
+    }
+
+    if (!found) return null;
+    return toDocumentRect({ top, left, bottom, width: right - left, height: bottom - top });
+  }
+
   function positionPopup(popup, anchorViewportRect) {
     const anchor = toDocumentRect(anchorViewportRect);
     const popupRect = popup.getBoundingClientRect();
+    const subtitleBounds = getSubtitleBoundsRect();
 
-    let top = anchor.top - popupRect.height - 8;
+    const blockTop = subtitleBounds ? Math.min(subtitleBounds.top, anchor.top) : anchor.top;
+    const blockBottom = subtitleBounds ? Math.max(subtitleBounds.bottom, anchor.bottom) : anchor.bottom;
+
+    let top = blockTop - popupRect.height - 8;
     let left = anchor.left;
 
-    if (top < window.scrollY + 8) top = anchor.bottom + 8;
+    if (top < window.scrollY + 8) top = blockBottom + 8;
     if (left + popupRect.width > window.scrollX + window.innerWidth - 8) {
       left = window.scrollX + window.innerWidth - popupRect.width - 8;
     }
@@ -456,6 +623,7 @@
     document.removeEventListener("click", onOutsideClick, { capture: true });
     document.removeEventListener("keydown", onEscape);
 
+    cancelSelection();
     releaseInteraction();
     if (!getVideo()?.paused) blurUnheldOverlays();
   }

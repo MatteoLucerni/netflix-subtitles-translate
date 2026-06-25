@@ -19,8 +19,8 @@
   cursor: pointer;
 }
 
-.nse-word:hover {
-  text-decoration: underline;
+.nse-word.selected {
+  color: #46d369;
 }
 
 #nse-popup {

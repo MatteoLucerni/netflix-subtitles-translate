@@ -49,7 +49,7 @@ async function translate(word) {
 
   return {
     word,
-    translation: data[0]?.[0]?.[0] ?? null,
+    translation: data[0]?.map((segment) => segment[0]).join("") ?? null,
     entries: data[1] ?? null,
     definitions,
     examples: data[13]?.[0] ?? null

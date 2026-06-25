@@ -7,6 +7,13 @@
   log("content script loaded", location.href);
 
   const SELECTOR_CHAIN = [".player-timedtext", '[class*="timedtext"]'];
+  const CONTROLS_SELECTOR_CHAIN = [
+    '[data-uia="player-controls-wrapper"]',
+    '[data-uia="controls-standard"]',
+    '[class*="PlayerControlsNeo__layout"]',
+    '[class*="PlayerControlsNeo"]'
+  ];
+  const FALLBACK_CONTROLS_HEIGHT = 110;
   const STYLE_PROPS = [
     "font-family",
     "font-size",
@@ -22,7 +29,9 @@
   const TOKEN_REGEX = new RegExp(`[${WORD_CHAR_CLASS}]+|[^${WORD_CHAR_CLASS}]+`, "g");
   const NON_WORD_CHAR_REGEX = new RegExp(`[^${WORD_CHAR_CLASS}]`, "g");
 
-  const lineState = new Map();
+  let activeLines = [];
+  let currentContainer = null;
+  let maxControlsHeight = 0;
 
   let extensionPaused = false;
   let wasPlayingBeforePause = false;
@@ -65,14 +74,14 @@
   }
 
   function revealAllOverlays() {
-    for (const [, state] of lineState) state.overlay.classList.add("revealed");
+    for (const line of activeLines) line.overlay.classList.add("revealed");
   }
 
   function blurUnheldOverlays() {
-    for (const [, state] of lineState) {
-      if (state.overlay.dataset.hovered === "true") continue;
+    for (const line of activeLines) {
+      if (line.overlay.dataset.hovered === "true") continue;
       if (isPopupOpen()) continue;
-      state.overlay.classList.remove("revealed");
+      line.overlay.classList.remove("revealed");
     }
   }
 
@@ -169,20 +178,49 @@
     };
   }
 
-  function positionOverlay(overlay, lineEl) {
-    const rect = toDocumentRect(lineEl.getBoundingClientRect());
-    overlay.style.top = `${rect.bottom}px`;
-    overlay.style.left = `${rect.left}px`;
-    overlay.style.width = `${rect.width}px`;
-    overlay.style.height = "auto";
-    overlay.style.transform = "translateY(-100%)";
+  function findControlsElement() {
+    for (const selector of CONTROLS_SELECTOR_CHAIN) {
+      const el = document.querySelector(selector);
+      if (el) return el;
+    }
+    return null;
+  }
+
+  function getControlsReservedHeight() {
+    const el = findControlsElement();
+    if (el) {
+      const height = el.getBoundingClientRect().height;
+      if (height > 0) maxControlsHeight = Math.max(maxControlsHeight, height);
+    }
+    return maxControlsHeight > 0 ? maxControlsHeight : FALLBACK_CONTROLS_HEIGHT;
+  }
+
+  function getPinnedBottom() {
+    const video = getVideo();
+    if (!video) return null;
+    return toDocumentRect(video.getBoundingClientRect()).bottom - getControlsReservedHeight();
+  }
+
+  function positionOverlayGroup(lines) {
+    const connected = lines.filter((line) => line.lineEl.isConnected);
+    if (connected.length === 0) return;
+
+    const rects = connected.map((line) => ({ line, rect: toDocumentRect(line.lineEl.getBoundingClientRect()) }));
+    const naturalBottommost = Math.max(...rects.map(({ rect }) => rect.bottom));
+    const pinnedBottom = getPinnedBottom();
+    const delta = pinnedBottom !== null ? pinnedBottom - naturalBottommost : 0;
+
+    for (const { line, rect } of rects) {
+      line.overlay.style.top = `${rect.bottom + delta}px`;
+      line.overlay.style.left = `${rect.left}px`;
+      line.overlay.style.width = `${rect.width}px`;
+      line.overlay.style.height = "auto";
+      line.overlay.style.transform = "translateY(-100%)";
+    }
   }
 
   function repositionAllOverlays() {
-    for (const [lineEl, state] of lineState) {
-      if (!lineEl.isConnected) continue;
-      positionOverlay(state.overlay, lineEl);
-    }
+    positionOverlayGroup(activeLines);
   }
 
   function buildTokens(text) {
@@ -225,37 +263,51 @@
     return overlay;
   }
 
-  function renderOverlayForLine(lineEl) {
-    const text = getLineText(lineEl);
-    const state = lineState.get(lineEl);
+  function reconcileLines(lineContainers) {
+    const incoming = lineContainers.map((lineEl) => ({ lineEl, text: getLineText(lineEl) }));
+    const usedOldIndexes = new Set();
+    const newActiveLines = [];
 
-    if (state && state.lastText === text) {
-      positionOverlay(state.overlay, lineEl);
-      return;
+    for (const { lineEl, text } of incoming) {
+      const matchIndex = activeLines.findIndex(
+        (line, idx) => !usedOldIndexes.has(idx) && line.lastText === text
+      );
+
+      if (matchIndex !== -1) {
+        usedOldIndexes.add(matchIndex);
+        const line = activeLines[matchIndex];
+        line.lineEl = lineEl;
+        lineEl.style.visibility = "hidden";
+        copyComputedStyles(line.overlay, findStyleSource(lineEl));
+        newActiveLines.push(line);
+      } else {
+        log("reconcileLines: new/changed text", JSON.stringify(text));
+        const overlay = createOverlay(lineEl);
+        overlay.replaceChildren(...buildTokens(text));
+        lineEl.style.visibility = "hidden";
+        newActiveLines.push({ lineEl, overlay, lastText: text });
+      }
     }
 
-    log("renderOverlayForLine: new/changed text", JSON.stringify(text));
-
-    const overlay = state?.overlay ?? createOverlay(lineEl);
-    overlay.replaceChildren(...buildTokens(text));
-
-    lineEl.style.visibility = "hidden";
-    positionOverlay(overlay, lineEl);
-    log("overlay positioned", overlay.getBoundingClientRect());
-
-    lineState.set(lineEl, { overlay, lastText: text });
-  }
-
-  function cleanupStaleOverlays(seenLines) {
-    for (const [lineEl, state] of lineState) {
-      if (seenLines.has(lineEl)) continue;
-      state.overlay.remove();
-      lineState.delete(lineEl);
+    for (let i = 0; i < activeLines.length; i++) {
+      if (!usedOldIndexes.has(i)) activeLines[i].overlay.remove();
     }
+
+    activeLines = newActiveLines;
+    positionOverlayGroup(activeLines);
   }
 
   function removeAllOverlays() {
-    cleanupStaleOverlays(new Set());
+    for (const line of activeLines) line.overlay.remove();
+    activeLines = [];
+  }
+
+  function isInteractionLocked() {
+    return isPopupOpen() || selectionStart !== null;
+  }
+
+  function resyncSubtitles() {
+    if (currentContainer) processSubtitle(currentContainer);
   }
 
   function processSubtitle(container) {
@@ -264,25 +316,23 @@
 
     if (hasImageSubtitles(container)) {
       log("image subtitles detected, skipping");
-      removeAllOverlays();
+      if (!isInteractionLocked()) removeAllOverlays();
       return;
     }
 
     const lineContainers = getLineContainers(container);
     log("lineContainers found", lineContainers.length, lineContainers);
     if (lineContainers.length === 0) {
-      removeAllOverlays();
+      if (!isInteractionLocked()) removeAllOverlays();
       return;
     }
 
-    const seenLines = new Set(lineContainers);
-    lineContainers.forEach(renderOverlayForLine);
-    cleanupStaleOverlays(seenLines);
+    reconcileLines(lineContainers);
   }
 
   function getOrderedOverlays() {
-    return [...lineState.values()]
-      .map((state) => state.overlay)
+    return activeLines
+      .map((line) => line.overlay)
       .filter((overlay) => overlay.isConnected)
       .sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top);
   }
@@ -309,6 +359,7 @@
     for (const span of document.querySelectorAll(".nse-word.selected")) {
       span.classList.remove("selected");
     }
+    resyncSubtitles();
   }
 
   function collectRange(startSpan, endSpan) {
@@ -579,9 +630,9 @@
     let bottom = -Infinity;
     let found = false;
 
-    for (const [, state] of lineState) {
-      if (!state.overlay.isConnected) continue;
-      const rect = state.overlay.getBoundingClientRect();
+    for (const line of activeLines) {
+      if (!line.overlay.isConnected) continue;
+      const rect = line.overlay.getBoundingClientRect();
       if (rect.width === 0 && rect.height === 0) continue;
       found = true;
       top = Math.min(top, rect.top);
@@ -640,6 +691,7 @@
 
   function watchContainer(container) {
     log("watchContainer started", container);
+    currentContainer = container;
     const observer = new MutationObserver(() => processSubtitle(container));
     observer.observe(container, {
       childList: true,
@@ -689,7 +741,7 @@
 
   document.addEventListener("fullscreenchange", () => {
     log("fullscreenchange", document.fullscreenElement);
-    for (const [, state] of lineState) reparentToCurrentTarget(state.overlay);
+    for (const line of activeLines) reparentToCurrentTarget(line.overlay);
     removePopup();
     repositionAllOverlays();
   });

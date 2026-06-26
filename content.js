@@ -610,6 +610,7 @@
   }
 
   async function translateAndShowPhrase(text, anchorRect) {
+    removePopupElement();
     translationPending = true;
     let result;
     try {

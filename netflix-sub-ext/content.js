@@ -43,6 +43,11 @@
   let selectionTimer = null;
   const SELECTION_DEBOUNCE_MS = 1200;
 
+  let dragAnchor = null;
+  let dragActive = false;
+  let suppressClickAfterDrag = false;
+  let translationPending = false;
+
   let cueHistory = [];
   let cueIndex = -1;
   let suppressHistoryCapture = false;
@@ -280,11 +285,12 @@
 
     overlay.addEventListener("mouseleave", () => {
       delete overlay.dataset.hovered;
-      if (isPopupOpen()) return;
+      if (isPopupOpen() || selectionStart !== null || translationPending) return;
       releaseInteraction();
       if (!getVideo()?.paused) overlay.classList.remove("revealed");
     });
 
+    overlay.addEventListener("mousedown", onWordMouseDown);
     overlay.addEventListener("click", onWordClick);
 
     if (isPopupOpen() || getVideo()?.paused) overlay.classList.add("revealed");
@@ -502,6 +508,9 @@
 
   function cancelSelection() {
     stopAccumulating();
+    stopDragTracking();
+    dragAnchor = null;
+    dragActive = false;
     for (const span of document.querySelectorAll(".nse-word.selected")) {
       span.classList.remove("selected");
     }
@@ -583,6 +592,7 @@
   }
 
   async function translateAndShowPhrase(text, anchorRect) {
+    translationPending = true;
     let result;
     try {
       result = await chrome.runtime.sendMessage({ type: "translate", word: text });
@@ -591,6 +601,7 @@
       log("translate request threw", err);
       result = { error: true };
     }
+    translationPending = false;
     showPopup(anchorRect, result);
   }
 
@@ -599,6 +610,13 @@
     stopAccumulating();
     if (!range || !range.text) return;
     translateAndShowPhrase(range.text, anchorRect);
+  }
+
+  function applySelectionHighlight(range) {
+    for (const wordSpan of getOrderedWordSpans()) wordSpan.classList.remove("selected");
+    if (range) {
+      for (const wordSpan of range.selectedWordSpans) wordSpan.classList.add("selected");
+    }
   }
 
   function onWordCtrlClick(span) {
@@ -618,11 +636,7 @@
     selectionStart = orderedSpans[Math.min(...indices)];
     selectionEnd = orderedSpans[Math.max(...indices)];
 
-    const range = collectRange(selectionStart, selectionEnd);
-    for (const wordSpan of orderedSpans) wordSpan.classList.remove("selected");
-    if (range) {
-      for (const wordSpan of range.selectedWordSpans) wordSpan.classList.add("selected");
-    }
+    applySelectionHighlight(collectRange(selectionStart, selectionEnd));
 
     document.addEventListener("click", onSelectionOutsideClick, { capture: true });
     document.addEventListener("keydown", onSelectionEscape);
@@ -631,8 +645,94 @@
     selectionTimer = setTimeout(() => finalizeSelection(anchorRect), SELECTION_DEBOUNCE_MS);
   }
 
+  function stopDragTracking() {
+    document.removeEventListener("mousemove", onWordDragMove);
+    document.removeEventListener("mouseup", onWordDragEnd);
+    document.removeEventListener("keydown", onDragEscape);
+  }
+
+  function onWordMouseDown(e) {
+    if (e.button !== 0 || e.ctrlKey) return;
+    const span = e.target.closest(".nse-word");
+    if (!span) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+    cancelSelection();
+
+    dragAnchor = span;
+    dragActive = false;
+    selectionStart = span;
+    selectionEnd = span;
+    applySelectionHighlight(collectRange(span, span));
+    pauseForInteraction();
+
+    document.addEventListener("mousemove", onWordDragMove);
+    document.addEventListener("mouseup", onWordDragEnd);
+    document.addEventListener("keydown", onDragEscape);
+  }
+
+  function onWordDragMove(e) {
+    if (e.buttons === 0) {
+      onWordDragEnd(e);
+      return;
+    }
+
+    const span = e.target.closest(".nse-word");
+    if (!span || span === selectionEnd) return;
+
+    dragActive = true;
+    selectionEnd = span;
+    applySelectionHighlight(collectRange(dragAnchor, span));
+  }
+
+  function onWordDragEnd(e) {
+    stopDragTracking();
+
+    const anchor = dragAnchor;
+    const wasDrag = dragActive;
+    dragAnchor = null;
+    dragActive = false;
+
+    if (!wasDrag) {
+      cancelSelection();
+      return;
+    }
+
+    e.preventDefault();
+    suppressClickAfterDrag = true;
+    setTimeout(() => {
+      suppressClickAfterDrag = false;
+    }, 0);
+
+    const endSpan = selectionEnd ?? anchor;
+    const range = collectRange(anchor, endSpan);
+    stopAccumulating();
+
+    if (!range || !range.text) return;
+
+    const anchorRect = endSpan.getBoundingClientRect();
+    translateAndShowPhrase(range.text, anchorRect);
+  }
+
+  function onDragEscape(e) {
+    if (e.key !== "Escape") return;
+    stopDragTracking();
+    dragAnchor = null;
+    dragActive = false;
+    cancelSelection();
+    if (!isPopupOpen()) releaseInteraction();
+  }
+
   async function onWordClick(e) {
     log("overlay click", e.target);
+
+    if (suppressClickAfterDrag) {
+      suppressClickAfterDrag = false;
+      e.stopPropagation();
+      return;
+    }
+
     const span = e.target.closest(".nse-word");
     if (!span) {
       log("click target is not a .nse-word span, ignoring");
@@ -655,20 +755,11 @@
 
     span.classList.add("selected");
     const anchorRect = span.getBoundingClientRect();
-
-    let result;
-    try {
-      result = await chrome.runtime.sendMessage({ type: "translate", word });
-      log("translate response", result);
-    } catch (err) {
-      log("translate request threw", err);
-      result = { error: true };
-    }
-    showPopup(anchorRect, result);
+    await translateAndShowPhrase(word, anchorRect);
   }
 
   function showPopup(anchorRect, result) {
-    removePopup();
+    removePopupElement();
 
     const popup = document.createElement("div");
     popup.id = "nse-popup";
@@ -839,13 +930,18 @@
     popup.style.left = `${left}px`;
   }
 
-  function removePopup() {
+  function removePopupElement() {
     const popup = document.getElementById("nse-popup");
-    if (!popup) return;
+    if (!popup) return false;
 
     popup.remove();
     document.removeEventListener("click", onOutsideClick, { capture: true });
     document.removeEventListener("keydown", onEscape);
+    return true;
+  }
+
+  function removePopup() {
+    if (!removePopupElement()) return;
 
     cancelSelection();
     releaseInteraction();
@@ -853,6 +949,8 @@
   }
 
   function onOutsideClick(e) {
+    if (suppressClickAfterDrag) return;
+    if (e.target.closest(".nse-word")) return;
     const popup = document.getElementById("nse-popup");
     if (popup && popup.contains(e.target)) return;
     removePopup();

@@ -10,6 +10,7 @@
   white-space: pre-wrap;
   box-sizing: border-box;
   overflow: hidden;
+  user-select: none;
 }
 
 .nse-overlay.revealed {

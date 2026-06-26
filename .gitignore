@@ -1,0 +1,22 @@
+# Packaged extension artifacts
+*.zip
+*.crx
+*.pem
+
+# OS junk files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor/IDE folders
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Local-only project instructions for Claude Code
+CLAUDE.md
+
+# Local-only Claude Code settings (per-machine permission overrides)
+.claude/settings.local.json

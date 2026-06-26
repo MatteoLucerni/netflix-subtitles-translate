@@ -1,0 +1,232 @@
+:root {
+  --nse-green: #46d369;
+  --nse-bg-0: #202124;
+  --nse-bg-1: #292a2d;
+  --nse-bg-2: #35363a;
+  --nse-bg-3: #3c4043;
+  --nse-border: rgba(255, 255, 255, 0.08);
+  --nse-text-primary: #e8eaed;
+  --nse-text-secondary: #9aa0a6;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  width: 320px;
+  background: var(--nse-bg-0);
+  color: var(--nse-text-primary);
+  font-family: Arial, sans-serif;
+}
+
+#nse-popup-root {
+  display: flex;
+  flex-direction: column;
+}
+
+.nse-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px 18px;
+  background: var(--nse-bg-1);
+  border-bottom: 1px solid var(--nse-border);
+}
+
+.nse-logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 1px var(--nse-border);
+}
+
+.nse-header-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.nse-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  color: var(--nse-text-primary);
+}
+
+.nse-tagline {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: var(--nse-text-secondary);
+}
+
+.nse-version {
+  position: absolute;
+  right: 12px;
+  bottom: 8px;
+  font-size: 10px;
+  color: var(--nse-text-secondary);
+  background: var(--nse-bg-2);
+  padding: 2px 7px;
+  border-radius: 10px;
+  border: 1px solid var(--nse-border);
+}
+
+.nse-toggles {
+  display: flex;
+  flex-direction: column;
+}
+
+.nse-toggle-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--nse-border);
+}
+
+.nse-toggle-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.nse-toggle-title-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nse-toggle-title {
+  font-size: 13px;
+  font-weight: bold;
+  color: var(--nse-text-primary);
+}
+
+.nse-toggle-desc {
+  font-size: 11px;
+  color: var(--nse-text-secondary);
+  margin: 3px 0 0;
+}
+
+.nse-help {
+  position: relative;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--nse-bg-2);
+  border: 1px solid var(--nse-border);
+  color: var(--nse-text-secondary);
+  font-size: 10px;
+  line-height: 13px;
+  text-align: center;
+  cursor: default;
+}
+
+.nse-help:hover,
+.nse-help:focus {
+  background: var(--nse-bg-3);
+  color: var(--nse-text-primary);
+  border-color: rgba(70, 211, 105, 0.4);
+}
+
+.nse-tooltip {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: 20px;
+  width: 210px;
+  background: var(--nse-bg-2);
+  color: var(--nse-text-primary);
+  font-size: 11px;
+  font-weight: normal;
+  line-height: 1.4;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--nse-border);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  z-index: 1;
+}
+
+.nse-help:hover .nse-tooltip,
+.nse-help:focus .nse-tooltip {
+  display: block;
+}
+
+.nse-switch {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.nse-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.nse-slider {
+  position: absolute;
+  inset: 0;
+  background: var(--nse-bg-2);
+  border: 1px solid var(--nse-border);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.nse-slider::before {
+  content: "";
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  left: 2px;
+  top: 2px;
+  background: var(--nse-text-secondary);
+  border-radius: 50%;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.nse-switch input:checked + .nse-slider {
+  background: rgba(70, 211, 105, 0.16);
+  border-color: rgba(70, 211, 105, 0.45);
+}
+
+.nse-switch input:checked + .nse-slider::before {
+  background: var(--nse-green);
+  transform: translateX(16px);
+}
+
+.nse-help-section {
+  padding: 12px 14px 14px;
+  background: var(--nse-bg-1);
+  border-top: 1px solid var(--nse-border);
+}
+
+.nse-help-section h2 {
+  font-size: 12px;
+  margin: 0 0 6px;
+  color: var(--nse-green);
+}
+
+.nse-help-section ul {
+  margin: 0;
+  padding-left: 16px;
+}
+
+.nse-help-section li {
+  font-size: 11px;
+  color: var(--nse-text-secondary);
+  margin-bottom: 4px;
+}
+
+.nse-help-section b {
+  color: var(--nse-text-primary);
+}

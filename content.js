@@ -58,6 +58,22 @@
   const PAUSE_BEFORE_NEXT_CUE_SEC = 0.05;
   const PAUSE_SCHEDULE_SAFETY_MS = 15000;
 
+  let settings = { ...NSE_SETTINGS_DEFAULTS };
+
+  function applyBlurSettingToAllOverlays() {
+    document.documentElement.classList.toggle("nse-blur-disabled", !settings.subtitleBlurEnabled);
+  }
+
+  nseGetSettings().then((loaded) => {
+    settings = loaded;
+    applyBlurSettingToAllOverlays();
+  });
+
+  nseOnSettingsChanged((changed) => {
+    Object.assign(settings, changed);
+    if ("subtitleBlurEnabled" in changed) applyBlurSettingToAllOverlays();
+  });
+
   function getVideo() {
     return document.querySelector("video");
   }
@@ -117,7 +133,9 @@
   function attachVideoListeners(video) {
     if (video.dataset.nseListenersAttached) return;
     video.dataset.nseListenersAttached = "true";
-    video.addEventListener("pause", revealAllOverlays);
+    video.addEventListener("pause", () => {
+      if (settings.autoRemoveBlurOnPause) revealAllOverlays();
+    });
     video.addEventListener("play", blurUnheldOverlays);
   }
 
@@ -280,13 +298,13 @@
     overlay.addEventListener("mouseenter", () => {
       overlay.dataset.hovered = "true";
       overlay.classList.add("revealed");
-      pauseForInteraction();
+      if (settings.autoPauseOnHover) pauseForInteraction();
     });
 
     overlay.addEventListener("mouseleave", () => {
       delete overlay.dataset.hovered;
       if (isPopupOpen() || selectionStart !== null || translationPending) return;
-      releaseInteraction();
+      if (settings.autoPauseOnHover) releaseInteraction();
       if (!getVideo()?.paused) overlay.classList.remove("revealed");
     });
 
@@ -1011,6 +1029,7 @@
   function onGlobalKeydown(e) {
     if (e.key !== "ArrowLeft") return;
     log("onGlobalKeydown: ArrowLeft detected", "repeat", e.repeat, "target", e.target);
+    if (!settings.jumpToPreviousSubtitleOnBack) return;
     if (e.repeat) return;
     if (e.target instanceof HTMLElement) {
       const tag = e.target.tagName;

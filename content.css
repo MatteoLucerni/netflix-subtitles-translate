@@ -26,7 +26,7 @@
 }
 
 .nse-word.selected {
-  color: #46d369;
+  color: #38bdf8;
 }
 
 #nse-popup {
@@ -50,7 +50,7 @@
 
 .nse-translation {
   font-size: 16px;
-  color: #46d369;
+  color: #38bdf8;
   margin-bottom: 6px;
 }
 
@@ -143,7 +143,7 @@
 }
 
 .nse-onboard-accent {
-  color: #46d369;
+  color: #38bdf8;
 }
 
 .nse-onboard-desc {
@@ -176,13 +176,13 @@
 
 .nse-onboard-select:focus {
   outline: none;
-  border-color: rgba(70, 211, 105, 0.6);
+  border-color: rgba(56, 189, 248, 0.6);
 }
 
 .nse-onboard-btn {
   margin-top: 18px;
   width: 100%;
-  background: #46d369;
+  background: #38bdf8;
   color: #0a0a0a;
   border: none;
   border-radius: 6px;

@@ -5,6 +5,18 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.5.1]
+
+### Fixed
+- Restored rounded corners on the toolbar icon (16/32/48/128), which had been lost when the background was made full-bleed in 0.5.0.
+
+## [0.5.0]
+
+### Changed
+- Switched the accent color from green to a light blue (`#38bdf8`) across the subtitle overlay, dictionary popup, onboarding overlay, and toolbar popup, so selected words, translations, and UI accents now share a single consistent color.
+- Redrawn the toolbar icon (16/32/48/128) with a full-bleed light blue background and a white magnifying glass glyph, replacing the previous rounded dark icon with a green glyph.
+- Widened the toolbar popup from 320px to 360px.
+
 ## [0.4.1]
 
 ### Fixed

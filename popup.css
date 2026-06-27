@@ -1,5 +1,5 @@
 :root {
-  --nse-green: #46d369;
+  --nse-blue: #38bdf8;
   --nse-bg-0: #202124;
   --nse-bg-1: #292a2d;
   --nse-bg-2: #35363a;
@@ -15,7 +15,7 @@
 
 body {
   margin: 0;
-  width: 320px;
+  width: 360px;
   background: var(--nse-bg-0);
   color: var(--nse-text-primary);
   font-family: Arial, sans-serif;
@@ -54,7 +54,7 @@ body {
 }
 
 .nse-title-accent {
-  color: var(--nse-green);
+  color: var(--nse-blue);
 }
 
 .nse-version {
@@ -103,12 +103,12 @@ body {
 }
 
 .nse-select:hover {
-  border-color: rgba(70, 211, 105, 0.4);
+  border-color: rgba(56, 189, 248, 0.4);
 }
 
 .nse-select:focus {
   outline: none;
-  border-color: rgba(70, 211, 105, 0.6);
+  border-color: rgba(56, 189, 248, 0.6);
 }
 
 .nse-toggles {
@@ -168,7 +168,7 @@ body {
 .nse-help:focus {
   background: var(--nse-bg-3);
   color: var(--nse-text-primary);
-  border-color: rgba(70, 211, 105, 0.4);
+  border-color: rgba(56, 189, 248, 0.4);
 }
 
 .nse-tooltip {
@@ -232,12 +232,12 @@ body {
 }
 
 .nse-switch input:checked + .nse-slider {
-  background: rgba(70, 211, 105, 0.16);
-  border-color: rgba(70, 211, 105, 0.45);
+  background: rgba(56, 189, 248, 0.16);
+  border-color: rgba(56, 189, 248, 0.45);
 }
 
 .nse-switch input:checked + .nse-slider::before {
-  background: var(--nse-green);
+  background: var(--nse-blue);
   transform: translateX(16px);
 }
 
@@ -250,7 +250,7 @@ body {
 .nse-help-section h2 {
   font-size: 12px;
   margin: 0 0 6px;
-  color: var(--nse-green);
+  color: var(--nse-blue);
 }
 
 .nse-help-section ul {

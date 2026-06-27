@@ -5,6 +5,16 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.7.3]
+
+### Changed
+- Toolbar icon background darkened further to `#0790cd`, a bigger step down than the previous adjustment, since that one still read too light.
+
+## [0.7.2]
+
+### Changed
+- Toolbar icon background adjusted to `#20b1f2`, between the app's accent blue and the previous darker shade, to compensate for the large flat fill reading lighter than the same color used as small text/UI accents.
+
 ## [0.7.1]
 
 ### Fixed

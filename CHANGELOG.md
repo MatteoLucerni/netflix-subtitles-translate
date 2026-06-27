@@ -5,6 +5,23 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.7.1]
+
+### Fixed
+- Toolbar icon background now uses the exact same blue (`#38bdf8`) as the rest of the app, instead of a darker shade that no longer matched.
+
+### Changed
+- "Show advanced options" label and chevron are now centered and colored with the app's accent blue instead of secondary gray.
+
+## [0.7.0]
+
+### Added
+- The four behavior toggles (back arrow rewind, auto-pause on hover, blur subtitles, remove blur on pause) are now collapsed behind a "Show advanced options" disclosure in the popup, simplifying the default view. Click it to expand and access them.
+
+### Changed
+- Loosened spacing throughout the popup (header, language rows, toggle rows, help section) for a less cramped, more relaxed read.
+- "Ctrl+Click" in the help section is now written "Ctrl + Click".
+
 ## [0.6.2]
 
 ### Fixed

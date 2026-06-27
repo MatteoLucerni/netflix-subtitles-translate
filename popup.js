@@ -51,6 +51,17 @@ async function init() {
       nseSetSetting(key, select.value);
     });
   }
+
+  const advancedToggle = document.getElementById("nse-advanced-toggle");
+  const advancedPanel = document.getElementById("nse-advanced-panel");
+  advancedToggle.addEventListener("click", () => {
+    const expanded = advancedToggle.getAttribute("aria-expanded") === "true";
+    advancedToggle.setAttribute("aria-expanded", String(!expanded));
+    advancedPanel.hidden = expanded;
+    advancedToggle.querySelector("span").textContent = expanded
+      ? "Show advanced options"
+      : "Hide advanced options";
+  });
 }
 
 init();

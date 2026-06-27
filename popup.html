@@ -43,73 +43,82 @@
       </div>
     </section>
 
-    <section class="nse-toggles">
-      <div class="nse-toggle-row" data-setting="jumpToPreviousSubtitleOnBack">
-        <div class="nse-toggle-text">
-          <div class="nse-toggle-title-line">
-            <span class="nse-toggle-title">Back arrow rewinds subtitle</span>
-            <span class="nse-help" tabindex="0">
-              ?
-              <span class="nse-tooltip">When enabled, pressing the Left Arrow key jumps back to the start of the previous subtitle line and pauses at its end, instead of Netflix's default 10-second rewind.</span>
-            </span>
-          </div>
-          <p class="nse-toggle-desc">Left Arrow goes to the previous subtitle instead of rewinding 10 seconds.</p>
-        </div>
-        <label class="nse-switch">
-          <input type="checkbox" />
-          <span class="nse-slider"></span>
-        </label>
-      </div>
+    <section class="nse-advanced">
+      <button type="button" class="nse-advanced-toggle" id="nse-advanced-toggle" aria-expanded="false" aria-controls="nse-advanced-panel">
+        <span>Show advanced options</span>
+        <span class="nse-advanced-chevron" aria-hidden="true"></span>
+      </button>
 
-      <div class="nse-toggle-row" data-setting="autoPauseOnHover">
-        <div class="nse-toggle-text">
-          <div class="nse-toggle-title-line">
-            <span class="nse-toggle-title">Auto-pause on hover</span>
-            <span class="nse-help" tabindex="0">
-              ?
-              <span class="nse-tooltip">When enabled, hovering the mouse over a subtitle automatically pauses the video, and resumes it when you move the mouse away.</span>
-            </span>
+      <div class="nse-advanced-panel" id="nse-advanced-panel" hidden>
+        <div class="nse-toggles">
+          <div class="nse-toggle-row" data-setting="jumpToPreviousSubtitleOnBack">
+            <div class="nse-toggle-text">
+              <div class="nse-toggle-title-line">
+                <span class="nse-toggle-title">Back arrow rewinds subtitle</span>
+                <span class="nse-help" tabindex="0">
+                  ?
+                  <span class="nse-tooltip">When enabled, pressing the Left Arrow key jumps back to the start of the previous subtitle line and pauses at its end, instead of Netflix's default 10-second rewind.</span>
+                </span>
+              </div>
+              <p class="nse-toggle-desc">Left Arrow goes to the previous subtitle instead of rewinding 10 seconds.</p>
+            </div>
+            <label class="nse-switch">
+              <input type="checkbox" />
+              <span class="nse-slider"></span>
+            </label>
           </div>
-          <p class="nse-toggle-desc">Hovering over a subtitle pauses the video automatically.</p>
-        </div>
-        <label class="nse-switch">
-          <input type="checkbox" />
-          <span class="nse-slider"></span>
-        </label>
-      </div>
 
-      <div class="nse-toggle-row" data-setting="subtitleBlurEnabled">
-        <div class="nse-toggle-text">
-          <div class="nse-toggle-title-line">
-            <span class="nse-toggle-title">Blur subtitles</span>
-            <span class="nse-help" tabindex="0">
-              ?
-              <span class="nse-tooltip">When enabled, subtitles are blurred by default so you read the dialogue without seeing the text at a glance. Hover over a subtitle to reveal it.</span>
-            </span>
+          <div class="nse-toggle-row" data-setting="autoPauseOnHover">
+            <div class="nse-toggle-text">
+              <div class="nse-toggle-title-line">
+                <span class="nse-toggle-title">Auto-pause on hover</span>
+                <span class="nse-help" tabindex="0">
+                  ?
+                  <span class="nse-tooltip">When enabled, hovering the mouse over a subtitle automatically pauses the video, and resumes it when you move the mouse away.</span>
+                </span>
+              </div>
+              <p class="nse-toggle-desc">Hovering over a subtitle pauses the video automatically.</p>
+            </div>
+            <label class="nse-switch">
+              <input type="checkbox" />
+              <span class="nse-slider"></span>
+            </label>
           </div>
-          <p class="nse-toggle-desc">Subtitles are blurred until you hover over them.</p>
-        </div>
-        <label class="nse-switch">
-          <input type="checkbox" />
-          <span class="nse-slider"></span>
-        </label>
-      </div>
 
-      <div class="nse-toggle-row" data-setting="autoRemoveBlurOnPause">
-        <div class="nse-toggle-text">
-          <div class="nse-toggle-title-line">
-            <span class="nse-toggle-title">Remove blur when paused</span>
-            <span class="nse-help" tabindex="0">
-              ?
-              <span class="nse-tooltip">When enabled, pausing the video automatically reveals all blurred subtitles, so you can read them while paused.</span>
-            </span>
+          <div class="nse-toggle-row" data-setting="subtitleBlurEnabled">
+            <div class="nse-toggle-text">
+              <div class="nse-toggle-title-line">
+                <span class="nse-toggle-title">Blur subtitles</span>
+                <span class="nse-help" tabindex="0">
+                  ?
+                  <span class="nse-tooltip">When enabled, subtitles are blurred by default so you read the dialogue without seeing the text at a glance. Hover over a subtitle to reveal it.</span>
+                </span>
+              </div>
+              <p class="nse-toggle-desc">Subtitles are blurred until you hover over them.</p>
+            </div>
+            <label class="nse-switch">
+              <input type="checkbox" />
+              <span class="nse-slider"></span>
+            </label>
           </div>
-          <p class="nse-toggle-desc">Pausing the video reveals blurred subtitles automatically.</p>
+
+          <div class="nse-toggle-row" data-setting="autoRemoveBlurOnPause">
+            <div class="nse-toggle-text">
+              <div class="nse-toggle-title-line">
+                <span class="nse-toggle-title">Remove blur when paused</span>
+                <span class="nse-help" tabindex="0">
+                  ?
+                  <span class="nse-tooltip">When enabled, pausing the video automatically reveals all blurred subtitles, so you can read them while paused.</span>
+                </span>
+              </div>
+              <p class="nse-toggle-desc">Pausing the video reveals blurred subtitles automatically.</p>
+            </div>
+            <label class="nse-switch">
+              <input type="checkbox" />
+              <span class="nse-slider"></span>
+            </label>
+          </div>
         </div>
-        <label class="nse-switch">
-          <input type="checkbox" />
-          <span class="nse-slider"></span>
-        </label>
       </div>
     </section>
 
@@ -117,7 +126,7 @@
       <h2>How translation works</h2>
       <ul>
         <li><b>Click</b> a word for its translation and dictionary definition.</li>
-        <li><b>Ctrl+Click</b> multiple words to combine them into one selection.</li>
+        <li><b>Ctrl + Click</b> multiple words to combine them into one selection.</li>
         <li><b>Click and drag</b> across words to select a phrase.</li>
       </ul>
     </section>

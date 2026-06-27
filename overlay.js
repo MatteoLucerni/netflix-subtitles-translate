@@ -149,19 +149,29 @@ function reconcileLines(lineContainers) {
   const incoming = lineContainers.map((lineEl) => ({ lineEl, text: getLineText(lineEl) }));
   const usedOldIndexes = new Set();
   const newActiveLines = [];
+  const wasEmpty = activeLines.length === 0;
   let hasNewCue = false;
   let hasRemovedCue = false;
 
   for (const { lineEl, text } of incoming) {
-    const matchIndex = activeLines.findIndex(
-      (line, idx) => !usedOldIndexes.has(idx) && line.lastText === text
+    let matchIndex = activeLines.findIndex(
+      (line, idx) => !usedOldIndexes.has(idx) && line.lineEl === lineEl
     );
+    if (matchIndex === -1) {
+      matchIndex = activeLines.findIndex(
+        (line, idx) => !usedOldIndexes.has(idx) && line.lastText === text
+      );
+    }
 
     if (matchIndex !== -1) {
       usedOldIndexes.add(matchIndex);
       const line = activeLines[matchIndex];
       line.lineEl = lineEl;
       lineEl.style.visibility = "hidden";
+      if (line.lastText !== text) {
+        line.overlay.replaceChildren(...buildTokens(text));
+        line.lastText = text;
+      }
       copyComputedStyles(line.overlay, findStyleSource(lineEl));
       newActiveLines.push(line);
     } else {
@@ -184,8 +194,12 @@ function reconcileLines(lineContainers) {
   activeLines = newActiveLines;
   positionOverlayGroup(activeLines);
 
-  if (hasRemovedCue) markCueEnded();
-  if (hasNewCue) recordCueStart();
+  if (PLATFORM.cueBoundaryMode === "window") {
+    if (wasEmpty && newActiveLines.length > 0) recordCueStart();
+  } else {
+    if (hasRemovedCue) markCueEnded();
+    if (hasNewCue) recordCueStart();
+  }
 }
 
 function removeAllOverlays() {

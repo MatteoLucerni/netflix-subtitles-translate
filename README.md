@@ -2,16 +2,18 @@
 
 A Chrome extension (Manifest V3) that blurs subtitles until you want to read them, and turns subtitle words into clickable translations and dictionary lookups.
 
-Currently supports Netflix. The extension is built so other streaming platforms can be added later without changing its identity.
+Supports Netflix and YouTube. The extension is built around a platform adapter so other streaming platforms can be added later without changing its identity.
 
 ## Features
 
 - **Subtitle blur**: subtitles are blurred by default; hover over a line to reveal it.
 - **Auto-pause on hover**: hovering a subtitle pauses the video so you can read it.
 - **Auto-reveal on pause**: pausing the video reveals all blurred subtitles.
-- **Jump to previous subtitle**: pressing the Left Arrow key replays the previous subtitle line (instead of Netflix's default 10-second rewind).
+- **Jump to previous subtitle**: pressing the Left Arrow key replays the previous subtitle line (instead of the player's default rewind).
 - **Word translation and dictionary**: click a word for its translation and dictionary entry, Ctrl+click to add more words to the selection, or click-and-drag to select a phrase.
-- **Language selection**: choose the subtitle (source) language, or leave it on "Auto" to detect it from the Netflix track, and the language to translate into.
+- **Language selection**: choose the subtitle (source) language, or leave it on "Auto" to detect it from the active player caption track, and the language to translate into.
+
+On YouTube, both manual and auto-generated captions are supported; the captions must be enabled in the player (CC button). On YouTube the supported pages are `youtube.com/watch`.
 
 The four behaviors above are toggleable from the extension's toolbar popup and default to enabled (matching the extension's original always-on behavior); the subtitle and translation languages are configurable in the same popup.
 
@@ -19,7 +21,7 @@ The four behaviors above are toggleable from the extension's toolbar popup and d
 
 ```
 manifest.json     MV3 manifest
-background.js     Service worker: Netflix player seek + Google Translate requests
+background.js     Service worker: platform-aware player seek + Google Translate requests
 content.css       Styles for the subtitle overlay and dictionary popup
 popup.html/css/js Toolbar action popup with the settings controls
 icons/            Extension icons (16/32/48/128 px)
@@ -30,6 +32,7 @@ isolated-world scope and are loaded in this exact order (see `manifest.json`):
 
 ```
 settings.js       Shared chrome.storage.sync helpers + language list
+platforms.js      Platform adapter (Netflix/YouTube): selectors, seek, lang detection
 core.js           Config constants, shared state, base helpers
 overlay.js        Subtitle overlay: styles, positioning, tokenizing, reconcile, blur/reveal
 cues.js           Cue history + Left Arrow back-jump navigation
@@ -45,13 +48,13 @@ runs top-level code.
 1. Open `chrome://extensions` in Chrome.
 2. Enable **Developer mode** (top right).
 3. Click **Load unpacked** and select this repository's root folder.
-4. Open a Netflix video with subtitles enabled.
+4. Open a Netflix video or a YouTube `/watch` video with subtitles enabled.
 
 ## Permissions
 
-- `scripting`: used to inject a script into the Netflix page's main world to call the internal player API for seeking.
+- `scripting`: used to inject a script into the page's main world to call the internal player API (Netflix seek and YouTube source-language detection).
 - `storage`: used by `chrome.storage.sync` to persist the settings.
-- `host_permissions` for `netflix.com` (content script) and `translate.googleapis.com` (background fetches for translation/dictionary data).
+- `host_permissions` for `netflix.com` and `youtube.com` (content script) and `translate.googleapis.com` (background fetches for translation/dictionary data).
 
 ## Settings popup
 

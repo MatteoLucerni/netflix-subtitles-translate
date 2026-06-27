@@ -92,7 +92,7 @@ async function jumpToPreviousCue() {
   suppressHistoryCaptureTimer = setTimeout(() => { suppressHistoryCapture = false; }, 2000);
 
   const timeMs = Math.max(0, Math.round(target.time * 1000));
-  const seeked = await seekNetflixPlayer(timeMs);
+  const seeked = await seekPlayer(timeMs);
   if (!seeked) {
     log("jumpToPreviousCue: falling back to video.currentTime");
     video.currentTime = target.time;

@@ -2,8 +2,8 @@
   "manifest_version": 3,
   "name": "Sublens - Translate & Learn from Subtitles",
   "short_name": "Sublens",
-  "description": "Blur subtitles until you want to see them, then click, Ctrl+click or drag-select any word for instant translation and dictionary definitions. Currently supports Netflix.",
-  "version": "0.8.1",
+  "description": "Blur subtitles until you want to see them, then click, Ctrl+click or drag-select any word for instant translation and dictionary definitions. Supports Netflix and YouTube.",
+  "version": "0.9.0",
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",
@@ -22,8 +22,8 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://www.netflix.com/*"],
-      "js": ["settings.js", "core.js", "overlay.js", "cues.js", "interaction.js", "content.js"],
+      "matches": ["https://www.netflix.com/*", "https://www.youtube.com/*"],
+      "js": ["settings.js", "platforms.js", "core.js", "overlay.js", "cues.js", "interaction.js", "content.js"],
       "css": ["content.css"],
       "run_at": "document_idle"
     }
@@ -32,5 +32,5 @@
     "service_worker": "background.js"
   },
   "permissions": ["scripting", "storage"],
-  "host_permissions": ["https://translate.googleapis.com/*", "https://www.netflix.com/*"]
+  "host_permissions": ["https://translate.googleapis.com/*", "https://www.netflix.com/*", "https://www.youtube.com/*"]
 }

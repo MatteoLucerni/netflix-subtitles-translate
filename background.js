@@ -19,7 +19,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     sendResponse({ error: true });
     return;
   }
-  resolveSourceLang(sender.tab?.id, msg.sourceLang)
+  resolveSourceLang(sender.tab, msg.sourceLang)
     .then((sl) => translate(msg.word, sl, normalizeLang(msg.targetLang) || "en"))
     .then((result) => {
       console.log("[NSE] translate succeeded", result);
@@ -38,8 +38,28 @@ function normalizeLang(code) {
   return primary || null;
 }
 
-async function resolveSourceLang(tabId, sourceSetting) {
+function platformFromUrl(url) {
+  if (typeof url !== "string") return null;
+  try {
+    const host = new URL(url).hostname;
+    if (/(^|\.)youtube\.com$/.test(host)) return "youtube";
+    if (/(^|\.)netflix\.com$/.test(host)) return "netflix";
+  } catch (err) {
+    return null;
+  }
+  return null;
+}
+
+async function resolveSourceLang(tab, sourceSetting) {
   if (sourceSetting && sourceSetting !== "auto") return normalizeLang(sourceSetting) ?? "auto";
+
+  const tabId = tab?.id;
+
+  if (platformFromUrl(tab?.url) === "youtube") {
+    const lang = normalizeLang(await getYouTubeSubtitleLang(tabId));
+    if (lang) return lang;
+    return "auto";
+  }
 
   const track = await getNetflixSubtitleLang(tabId);
   if (track && !track.isNoneTrack && track.bcp47) {
@@ -47,6 +67,34 @@ async function resolveSourceLang(tabId, sourceSetting) {
     if (lang) return lang;
   }
   return "auto";
+}
+
+async function getYouTubeSubtitleLang(tabId) {
+  if (!tabId) return null;
+
+  try {
+    const results = await chrome.scripting.executeScript({
+      target: { tabId },
+      world: "MAIN",
+      func: () => {
+        try {
+          const player = document.getElementById("movie_player");
+          const track = player?.getOption?.("captions", "track");
+          if (track?.languageCode) return track.languageCode;
+          const tracks = window.ytInitialPlayerResponse?.captions
+            ?.playerCaptionsTracklistRenderer?.captionTracks;
+          if (Array.isArray(tracks) && tracks[0]?.languageCode) return tracks[0].languageCode;
+          return null;
+        } catch (err) {
+          return null;
+        }
+      }
+    });
+    return results?.[0]?.result ?? null;
+  } catch (err) {
+    console.log("[NSE] getYouTubeSubtitleLang failed", err);
+    return null;
+  }
 }
 
 async function getNetflixSubtitleLang(tabId) {

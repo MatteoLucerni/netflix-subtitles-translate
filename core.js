@@ -3,13 +3,8 @@ function log(...args) {
   if (DEBUG) console.log("[NSE]", ...args);
 }
 
-const SELECTOR_CHAIN = [".player-timedtext", '[class*="timedtext"]'];
-const CONTROLS_SELECTOR_CHAIN = [
-  '[data-uia="player-controls-wrapper"]',
-  '[data-uia="controls-standard"]',
-  '[class*="PlayerControlsNeo__layout"]',
-  '[class*="PlayerControlsNeo"]'
-];
+const SELECTOR_CHAIN = PLATFORM.subtitleSelectors;
+const CONTROLS_SELECTOR_CHAIN = PLATFORM.controlsSelectors;
 const FALLBACK_CONTROLS_HEIGHT = 110;
 const BLUR_RATIO = 0.24;
 const MIN_BLUR_PX = 6;

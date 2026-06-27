@@ -1,10 +1,17 @@
-async function seekNetflixPlayer(timeMs) {
+async function seekPlayer(timeMs) {
+  if (!PLATFORM.usesBackgroundSeek) {
+    const video = getVideo();
+    if (!video) return false;
+    video.currentTime = timeMs / 1000;
+    log("seekPlayer: direct video seek", video.currentTime);
+    return true;
+  }
   try {
     const result = await chrome.runtime.sendMessage({ type: "seekNetflixPlayer", timeMs });
-    log("seekNetflixPlayer: result", result);
+    log("seekPlayer: result", result);
     return !!result?.ok;
   } catch (err) {
-    log("seekNetflixPlayer: message failed", err);
+    log("seekPlayer: message failed", err);
     return false;
   }
 }
@@ -51,8 +58,12 @@ function hasImageSubtitles(container) {
 }
 
 function getLineContainers(container) {
-  const matches = container.querySelectorAll('[class*="timedtext-text-container"]');
+  const matches = container.querySelectorAll(PLATFORM.lineContainerSelector);
   if (matches.length > 0) return Array.from(matches);
+  if (PLATFORM.lineContainerFallbackSelector) {
+    const fallback = container.querySelectorAll(PLATFORM.lineContainerFallbackSelector);
+    if (fallback.length > 0) return Array.from(fallback);
+  }
   return container.textContent.trim() ? [container] : [];
 }
 
@@ -92,7 +103,19 @@ function processSubtitle(container) {
 function watchContainer(container) {
   log("watchContainer started", container);
   currentContainer = container;
-  const observer = new MutationObserver(() => processSubtitle(container));
+
+  const debounceMs = PLATFORM.processDebounceMs;
+  let processTimer = null;
+  const scheduleProcess = () => {
+    if (debounceMs <= 0) {
+      processSubtitle(container);
+      return;
+    }
+    clearTimeout(processTimer);
+    processTimer = setTimeout(() => processSubtitle(container), debounceMs);
+  };
+
+  const observer = new MutationObserver(scheduleProcess);
   observer.observe(container, {
     childList: true,
     subtree: true,
@@ -243,6 +266,16 @@ document.addEventListener("fullscreenchange", () => {
   for (const line of activeLines) reparentToCurrentTarget(line.overlay);
   removePopup();
   repositionAllOverlays();
+});
+
+window.addEventListener("yt-navigate-finish", () => {
+  log("yt-navigate-finish", location.href);
+  if (currentContainer?.isConnected) return;
+  removeAllOverlays();
+  cueHistory = [];
+  cueIndex = -1;
+  currentContainer = null;
+  init();
 });
 
 init();

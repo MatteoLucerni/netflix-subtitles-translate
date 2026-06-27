@@ -170,9 +170,16 @@ async function translateDefinitionGroups(groups, sl, tl) {
   }
   if (texts.length === 0) return groups;
 
-  const delimiter = "\n||\n";
-  const translatedJoined = await translateText(texts.join(delimiter), sl, tl);
-  const translatedTexts = translatedJoined.split("||").map((text) => text.trim());
+  const translatedTexts = await Promise.all(
+    texts.map((text) =>
+      text
+        ? translateText(text, sl, tl).catch((err) => {
+            console.log("[NSE] definition translation failed", err);
+            return text;
+          })
+        : text
+    )
+  );
 
   let i = 0;
   return groups.map(([partOfSpeech, defs]) => [

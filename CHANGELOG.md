@@ -5,6 +5,16 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.8.1]
+
+### Fixed
+- Back-arrow subtitle navigation no longer skips a cue or pauses at the wrong moment after a previous back-jump. The cue history now re-syncs its position to the cue actually on screen when replaying, and a cue's end time is recorded against the correct entry instead of always the last one.
+- Subtitle overlays are no longer pinned too high after returning from fullscreen to windowed playback. The reserved controls height is now reset on fullscreen change so each mode measures its own controls.
+- Dictionary definitions in the translation popup are now aligned to the correct sense. Each definition is translated individually instead of as one delimiter-joined blob, which could misalign when Google Translate dropped the delimiter.
+
+### Changed
+- Split the 1,100+ line `content.js` into cohesive feature modules (`core.js`, `overlay.js`, `cues.js`, `interaction.js`, and a thin `content.js` entry), loaded in order as classic content scripts. No user-facing behavior change; improves maintainability.
+
 ## [0.8.0]
 
 ### Changed

@@ -19,12 +19,25 @@ All four behaviors above are toggleable from the extension's toolbar popup, and 
 ```
 manifest.json     MV3 manifest
 background.js     Service worker: Netflix player seek + Google Translate requests
-content.js        Injected into netflix.com: subtitle overlay, blur, word interaction
 content.css       Styles for the subtitle overlay and dictionary popup
-settings.js        Shared chrome.storage.sync helpers, loaded before content.js and popup.js
-popup.html/css/js Toolbar action popup with the settings toggles
+popup.html/css/js Toolbar action popup with the settings controls
 icons/            Extension icons (16/32/48/128 px)
 ```
+
+The content-script logic is split across several classic scripts that share one
+isolated-world scope and are loaded in this exact order (see `manifest.json`):
+
+```
+settings.js       Shared chrome.storage.sync helpers + language list
+core.js           Config constants, shared state, base helpers
+overlay.js        Subtitle overlay: styles, positioning, tokenizing, reconcile, blur/reveal
+cues.js           Cue history + Left Arrow back-jump navigation
+interaction.js    Word/phrase selection (click/Ctrl+click/drag) + translation popup
+content.js        Entry point: subtitle discovery, onboarding, init + event wiring
+```
+
+The order matters: these files share globals, and only `content.js` (loaded last)
+runs top-level code.
 
 ## Development setup
 

@@ -5,6 +5,11 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.6.0]
+
+### Changed
+- Reworked the toolbar icon (16/32/48/128): dropped the magnifying-glass handle and enlarged the circle to fill most of the canvas, so the glyph reads more clearly at small sizes. Background darkened to `#08a5eb` to read closer to the app's accent blue at full-bleed icon size.
+
 ## [0.5.1]
 
 ### Fixed

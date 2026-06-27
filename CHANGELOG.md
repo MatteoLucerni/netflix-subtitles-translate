@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [0.9.0]
 
 ### Added
-- YouTube support (`youtube.com/watch` pages). All existing features (subtitle blur, auto-pause on hover, auto-reveal on pause, Left Arrow back-jump, and word translation/dictionary) now work on YouTube in addition to Netflix. Both manual and auto-generated (rollup) captions are supported, with progressive word-by-word caption rendering handled so the blur stays stable.
+- YouTube support (`youtube.com/watch` pages). All existing features (subtitle blur, auto-pause on hover, auto-reveal on pause, Left Arrow back-jump, and word translation/dictionary) now work on YouTube in addition to Netflix. Both manual and auto-generated (rollup) captions are supported, with progressive word-by-word caption rendering handled so the blur stays stable. The native YouTube caption text is hidden via CSS (not just JS) so it never flashes on screen before the overlay takes over.
 - New `platforms.js` adapter that isolates all platform-specific details (subtitle/controls selectors, line containers, cue-boundary detection, player seek, source-language detection). Loaded between `settings.js` and `core.js`. The platform is selected automatically from the page hostname.
 
 ### Changed

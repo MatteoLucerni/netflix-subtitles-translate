@@ -240,6 +240,8 @@ function onGlobalKeydown(e) {
 
 log("content script loaded", location.href);
 
+document.documentElement.classList.add(`nse-platform-${PLATFORM.name}`);
+
 nseGetSettings().then((loaded) => {
   settings = loaded;
   applyBlurSettingToAllOverlays();

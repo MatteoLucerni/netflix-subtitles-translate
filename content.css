@@ -21,6 +21,10 @@
   filter: none !important;
 }
 
+html.nse-platform-youtube .ytp-caption-segment {
+  visibility: hidden !important;
+}
+
 .nse-word {
   cursor: pointer;
 }

@@ -11,6 +11,7 @@ function blurUnheldOverlays() {
 }
 
 function onVideoPause() {
+  if (!extensionPaused) clearPauseSchedule();
   if (settings.autoRemoveBlurOnPause) revealAllOverlays();
 }
 

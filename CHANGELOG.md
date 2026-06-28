@@ -5,6 +5,14 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.2.0]
+
+### Changed
+- The speaker (pronunciation) button in the translation popup is now always available whenever the subtitle language is pronounceable, regardless of the pronunciation setting. The setting, renamed "Auto-pronounce on selection", now only controls whether the pronunciation plays automatically when the popup opens; you can always click the speaker button to hear it on demand.
+
+### Fixed
+- Back-arrow replay: when jumping to the previous subtitle, the video plays the line and auto-pauses at its end. If you manually pause the video during that replay, the scheduled auto-pause is now cancelled, so resuming playback no longer triggers an unexpected pause at the end of the line.
+
 ## [1.1.2]
 
 ### Fixed

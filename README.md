@@ -36,7 +36,7 @@ Subtitles are blurred by default, so you test your listening before reading. Hov
 
 ### Pronunciation
 
-The selected word or phrase is pronounced automatically in the subtitle's source language as soon as the translation popup opens, fetched through Google Translate's text-to-speech endpoint. A speaker button in the popup lets you replay it. Disable this from **Pronounce selected word** in the popup if you only want text.
+The selected word or phrase can be pronounced in the subtitle's source language, fetched through Google Translate's text-to-speech endpoint. A speaker button in the popup is always available to play the pronunciation on demand. The **Auto-pronounce on selection** toggle in the popup controls only whether the pronunciation also plays automatically as soon as the translation popup opens.
 
 ### Auto-Pause on Hover
 
@@ -44,7 +44,7 @@ Hovering a subtitle pauses the video so you have time to read or look up a word,
 
 ### Replay the Previous Subtitle
 
-Press the **Left Arrow** key to jump back to the start of the previous subtitle line and pause at its end, instead of the player's default rewind. When there is no earlier subtitle to jump back to (subtitles off, or nothing played yet), the key falls back to the player's native rewind, so it never feels broken.
+Press the **Left Arrow** key to jump back to the start of the previous subtitle line and pause at its end, instead of the player's default rewind. When there is no earlier subtitle to jump back to (subtitles off, or nothing played yet), the key falls back to the player's native rewind, so it never feels broken. If you manually pause during the replay, the scheduled auto-pause at the end of the line is cancelled.
 
 ### Language Selection
 

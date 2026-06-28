@@ -329,7 +329,7 @@ function renderPopupResult(popup, result) {
   wordLabel.textContent = result.word;
   header.appendChild(wordLabel);
 
-  const canPronounce = settings.pronunciationEnabled && isPronounceableLang(result.sourceLang);
+  const canPronounce = isPronounceableLang(result.sourceLang);
   if (canPronounce) {
     const ttsBtn = document.createElement("button");
     ttsBtn.type = "button";
@@ -355,7 +355,7 @@ function renderPopupResult(popup, result) {
   appendDefinitions(popup, result.definitions);
   appendExamples(popup, result.examples);
 
-  if (canPronounce) playPronunciation(result.word, result.sourceLang);
+  if (canPronounce && settings.pronunciationEnabled) playPronunciation(result.word, result.sourceLang);
 }
 
 function isPronounceableLang(lang) {

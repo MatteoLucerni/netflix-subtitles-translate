@@ -42,7 +42,7 @@ function getLineText(lineEl) {
     if (node.nodeType === Node.TEXT_NODE) text += node.nodeValue;
     else if (node.nodeName === "BR") text += "\n";
   }
-  return text;
+  return PLATFORM.cleanLineText(text);
 }
 
 function copyComputedStyles(target, source) {

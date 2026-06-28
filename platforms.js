@@ -12,7 +12,8 @@ const NSE_PLATFORMS = {
     lineContainerSelector: '[class*="timedtext-text-container"]',
     cueRootSelector: '[class*="timedtext-text-container"]',
     usesBackgroundSeek: true,
-    processDebounceMs: 0
+    processDebounceMs: 0,
+    cleanLineText: (text) => text
   },
   youtube: {
     name: "youtube",
@@ -23,7 +24,12 @@ const NSE_PLATFORMS = {
     lineContainerFallbackSelector: ".caption-window",
     cueRootSelector: ".caption-window",
     usesBackgroundSeek: false,
-    processDebounceMs: 180
+    processDebounceMs: 180,
+    cleanLineText: (text) =>
+      text
+        .split("\n")
+        .map((line) => line.replace(/>>+/g, " ").replace(/[ \t]+/g, " ").trim())
+        .join("\n")
   }
 };
 

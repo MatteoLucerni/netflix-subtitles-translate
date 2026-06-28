@@ -5,6 +5,11 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.12.2]
+
+### Fixed
+- YouTube: the `>>` speaker-change markers in captions are no longer included in the clickable overlay, so they no longer end up in the selected word/phrase that gets translated and pronounced. A new per-platform `cleanLineText` hook in `platforms.js` strips them for YouTube (no-op for Netflix).
+
 ## [0.12.1]
 
 ### Fixed

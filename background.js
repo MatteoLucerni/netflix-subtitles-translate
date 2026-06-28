@@ -1,13 +1,26 @@
-console.log("[NSE] background service worker loaded");
+importScripts("env.js");
+
+const DEBUG = self.DEV_MODE ?? false;
+function log(...args) {
+  if (DEBUG) console.log(...args);
+}
+
+chrome.runtime.onInstalled.addListener((details) => {
+  if (details.reason === "install") {
+    chrome.tabs.create({ url: "https://getsublens.com/welcome.html" });
+  }
+});
+
+log("[NSE] background service worker loaded");
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  console.log("[NSE] background received message", msg);
+  log("[NSE] background received message", msg);
 
   if (msg?.type === "seekNetflixPlayer") {
     seekNetflixPlayer(sender.tab?.id, msg.timeMs)
       .then((result) => sendResponse(result))
       .catch((err) => {
-        console.log("[NSE] seekNetflixPlayer failed", err);
+        log("[NSE] seekNetflixPlayer failed", err);
         sendResponse({ ok: false, error: String(err) });
       });
     return true;
@@ -21,7 +34,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     fetchTts(msg.text, normalizeLang(msg.lang))
       .then((audio) => sendResponse({ audio }))
       .catch((err) => {
-        console.log("[NSE] tts failed", err);
+        log("[NSE] tts failed", err);
         sendResponse({ error: true });
       });
     return true;
@@ -29,18 +42,18 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
   if (msg?.type !== "translate") return;
   if (typeof msg.word !== "string" || !msg.word.trim()) {
-    console.log("[NSE] invalid word, rejecting");
+    log("[NSE] invalid word, rejecting");
     sendResponse({ error: true });
     return;
   }
   resolveSourceLang(sender.tab, msg.sourceLang)
     .then((sl) => translate(msg.word, sl, normalizeLang(msg.targetLang) || "en"))
     .then((result) => {
-      console.log("[NSE] translate succeeded", result);
+      log("[NSE] translate succeeded", result);
       sendResponse(result);
     })
     .catch((err) => {
-      console.log("[NSE] translate failed", err);
+      log("[NSE] translate failed", err);
       sendResponse({ error: true });
     });
   return true;
@@ -106,7 +119,7 @@ async function getYouTubeSubtitleLang(tabId) {
     });
     return results?.[0]?.result ?? null;
   } catch (err) {
-    console.log("[NSE] getYouTubeSubtitleLang failed", err);
+    log("[NSE] getYouTubeSubtitleLang failed", err);
     return null;
   }
 }
@@ -133,7 +146,7 @@ async function getNetflixSubtitleLang(tabId) {
     });
     return results?.[0]?.result ?? null;
   } catch (err) {
-    console.log("[NSE] getNetflixSubtitleLang failed", err);
+    log("[NSE] getNetflixSubtitleLang failed", err);
     return null;
   }
 }
@@ -173,7 +186,7 @@ async function translate(word, sl, tl) {
   url.searchParams.append("dt", "ex");
   url.searchParams.set("q", word);
 
-  console.log("[NSE] fetching", url.toString());
+  log("[NSE] fetching", url.toString());
   const res = await fetch(url.toString());
   if (!res.ok) throw new Error(`translate request failed: ${res.status}`);
 
@@ -186,7 +199,7 @@ async function translate(word, sl, tl) {
     try {
       definitions = await translateDefinitionGroups(definitionsRaw, detectedSl, tl);
     } catch (err) {
-      console.log("[NSE] definitions translation failed", err);
+      log("[NSE] definitions translation failed", err);
     }
   }
 
@@ -209,7 +222,7 @@ async function fetchTts(text, lang) {
   url.searchParams.set("tl", lang);
   url.searchParams.set("q", text);
 
-  console.log("[NSE] fetching tts", url.toString());
+  log("[NSE] fetching tts", url.toString());
   const res = await fetch(url.toString());
   if (!res.ok) throw new Error(`tts request failed: ${res.status}`);
 
@@ -257,7 +270,7 @@ async function translateDefinitionGroups(groups, sl, tl) {
     texts.map((text) =>
       text
         ? translateText(text, sl, tl).catch((err) => {
-            console.log("[NSE] definition translation failed", err);
+            log("[NSE] definition translation failed", err);
             return text;
           })
         : text

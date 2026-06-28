@@ -1,0 +1,637 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      Sublens - Translate & Learn from Subtitles | Chrome Extension for Netflix
+      & YouTube
+    </title>
+    <meta
+      name="description"
+      content="Sublens blurs subtitles until you want to read them, then turns any word into an instant translation, dictionary lookup and pronunciation. Learn languages on Netflix and YouTube."
+    />
+    <meta
+      name="keywords"
+      content="subtitles translation, learn languages Netflix, YouTube subtitles translate, language learning extension, subtitle blur, click to translate, Chrome extension, dictionary, pronunciation"
+    />
+    <meta name="author" content="Matteo Lucerni" />
+
+    <meta name="robots" content="index, follow" />
+    <meta name="googlebot" content="index, follow" />
+
+    <link rel="canonical" href="https://getsublens.com/" />
+
+    <meta property="og:title" content="Sublens - Translate & Learn from Subtitles" />
+    <meta
+      property="og:description"
+      content="Blur subtitles until you want to read them, then click any word for instant translation, dictionary and pronunciation on Netflix and YouTube."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://getsublens.com/" />
+    <meta
+      property="og:image"
+      content="https://getsublens.com/assets/icons/sublens-logo.png"
+    />
+    <meta property="og:site_name" content="Sublens" />
+
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Sublens - Translate & Learn from Subtitles" />
+    <meta
+      name="twitter:description"
+      content="Blur subtitles until you want to read them, then click any word for instant translation, dictionary and pronunciation on Netflix and YouTube."
+    />
+    <meta
+      name="twitter:image"
+      content="https://getsublens.com/assets/icons/sublens-logo.png"
+    />
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.7/css/bootstrap.min.css"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="icon"
+      href="assets/icons/sublens-logo.png"
+      type="image/png"
+    />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Sublens",
+        "description": "Chrome extension that blurs subtitles until you want to read them, then turns any word into an instant translation, dictionary lookup and pronunciation on Netflix and YouTube.",
+        "applicationCategory": "BrowserApplication",
+        "operatingSystem": "Chrome",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "author": {
+          "@type": "Person",
+          "name": "Matteo Lucerni",
+          "url": "https://www.linkedin.com/in/matteo-lucerni-0725a526b/"
+        },
+        "url": "https://getsublens.com/"
+      }
+    </script>
+
+    <style>
+      :root {
+        --bg-primary: #0a0a0a;
+        --bg-secondary: #121417;
+        --bg-tertiary: #181b20;
+        --text-primary: #f5f7fa;
+        --text-secondary: #b9c0c9;
+        --text-tertiary: #8a929c;
+        --border-color: #23272e;
+        --accent: #38bdf8;
+        --accent-strong: #0ea5e9;
+        --accent-deep: #06283d;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Poppins", sans-serif;
+        overflow-x: hidden;
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+      }
+
+      .navbar {
+        position: fixed;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        padding: 16px 20px;
+        background: rgba(10, 10, 10, 0.7);
+        z-index: 100;
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .brand-mark {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        text-decoration: none;
+      }
+
+      .brand-mark img {
+        width: 38px;
+        height: 38px;
+        border-radius: 9px;
+      }
+
+      .brand-mark .brand-name {
+        color: #fff;
+        font-weight: 700;
+        font-size: 1.35rem;
+        line-height: 1;
+      }
+
+      .brand-mark .brand-sub {
+        color: var(--text-tertiary);
+        font-size: 0.75rem;
+      }
+
+      .cta-compact {
+        background: var(--accent);
+        color: var(--accent-deep);
+        padding: 9px 16px;
+        border: none;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .cta-compact:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(56, 189, 248, 0.35);
+        color: var(--accent-deep);
+      }
+
+      .hero {
+        text-align: center;
+        min-height: 100vh;
+        padding: 150px 20px 80px;
+        background:
+          radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.12), transparent 55%),
+          var(--bg-primary);
+      }
+
+      .hero-logo {
+        width: 96px;
+        height: 96px;
+        border-radius: 22px;
+        box-shadow: 0 10px 40px rgba(56, 189, 248, 0.25);
+        animation: fadeInDown 0.9s forwards;
+        opacity: 0;
+      }
+
+      .hero h1 {
+        font-size: 3rem;
+        margin-top: 24px;
+        opacity: 0;
+        animation: fadeInDown 1s 0.15s forwards;
+      }
+
+      .hero h2 {
+        font-weight: 400;
+        color: var(--text-secondary);
+        opacity: 0;
+        animation: fadeInDown 1s 0.3s forwards;
+      }
+
+      .hero p.lead-text {
+        font-size: 1.15rem;
+        margin-top: 18px;
+        max-width: 620px;
+        margin-left: auto;
+        margin-right: auto;
+        color: var(--text-secondary);
+        opacity: 0;
+        animation: fadeInUp 1s 0.5s forwards;
+      }
+
+      .hero .btn-primary-cta {
+        margin-top: 32px;
+        padding: 13px 34px;
+        background: var(--accent);
+        color: var(--accent-deep);
+        border: none;
+        border-radius: 8px;
+        font-size: 1.05rem;
+        font-weight: 600;
+        cursor: pointer;
+        opacity: 0;
+        animation: fadeInUp 1s 0.8s forwards;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .hero .btn-primary-cta:hover {
+        background: var(--accent-strong);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 26px rgba(56, 189, 248, 0.35);
+      }
+
+      .hero .platforms {
+        margin-top: 26px;
+        color: var(--text-tertiary);
+        font-size: 0.95rem;
+        opacity: 0;
+        animation: fadeInUp 1s 1s forwards;
+      }
+
+      .hero .platforms i {
+        margin: 0 6px;
+        color: var(--text-secondary);
+      }
+
+      .section-title {
+        font-size: 2.3rem;
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 14px;
+      }
+
+      .section-subtitle {
+        text-align: center;
+        color: var(--text-tertiary);
+        margin-bottom: 50px;
+        max-width: 640px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .features {
+        padding: 80px 20px;
+        background: var(--bg-secondary);
+        border-top: 1px solid var(--border-color);
+      }
+
+      .feature {
+        background: var(--bg-tertiary);
+        padding: 28px;
+        border-radius: 14px;
+        border: 1px solid var(--border-color);
+        height: 100%;
+        transition: transform 0.3s ease, border-color 0.3s ease,
+          box-shadow 0.3s ease;
+      }
+
+      .feature:hover {
+        transform: translateY(-5px);
+        border-color: var(--accent);
+        box-shadow: 0 14px 36px rgba(0, 0, 0, 0.45);
+      }
+
+      .feature-icon {
+        font-size: 1.8rem;
+        color: var(--accent);
+        margin-bottom: 16px;
+      }
+
+      .feature h3 {
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+      }
+
+      .feature p {
+        color: var(--text-secondary);
+        line-height: 1.6;
+        font-size: 0.96rem;
+        margin: 0;
+      }
+
+      .how {
+        padding: 80px 20px;
+        background: var(--bg-primary);
+        border-top: 1px solid var(--border-color);
+      }
+
+      .step {
+        text-align: center;
+        padding: 20px;
+      }
+
+      .step-number {
+        width: 54px;
+        height: 54px;
+        border-radius: 50%;
+        background: rgba(56, 189, 248, 0.12);
+        color: var(--accent);
+        font-weight: 700;
+        font-size: 1.3rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 18px;
+        border: 1px solid var(--accent);
+      }
+
+      .step h3 {
+        font-size: 1.15rem;
+        margin-bottom: 8px;
+      }
+
+      .step p {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        line-height: 1.6;
+      }
+
+      .cta-section {
+        padding: 80px 20px;
+        background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+        color: var(--accent-deep);
+        text-align: center;
+        border-top: 1px solid var(--border-color);
+      }
+
+      .cta-section h2 {
+        font-size: 2.3rem;
+        margin-bottom: 16px;
+      }
+
+      .cta-section p {
+        font-size: 1.1rem;
+        margin-bottom: 34px;
+        opacity: 0.9;
+      }
+
+      .cta-section .btn {
+        background: var(--accent-deep);
+        color: #fff;
+        padding: 14px 40px;
+        border: none;
+        border-radius: 8px;
+        font-size: 1.05rem;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.3s ease;
+      }
+
+      .cta-section .btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 28px rgba(6, 40, 61, 0.4);
+        color: #fff;
+      }
+
+      .footer {
+        padding: 40px 20px;
+        text-align: center;
+        background: var(--bg-secondary);
+        color: var(--text-tertiary);
+        border-top: 1px solid var(--border-color);
+      }
+
+      .footer a {
+        color: var(--text-secondary);
+        text-decoration: none;
+      }
+
+      .footer a:hover {
+        color: var(--accent);
+      }
+
+      .footer .footer-links {
+        margin-top: 12px;
+      }
+
+      @keyframes fadeInDown {
+        from {
+          opacity: 0;
+          transform: translateY(-40px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(40px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (max-width: 768px) {
+        .hero h1 {
+          font-size: 2.2rem;
+        }
+        .section-title {
+          font-size: 1.9rem;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <nav class="navbar">
+      <a class="brand-mark" href="/" aria-label="Sublens Home">
+        <img src="assets/icons/sublens-logo.png" alt="Sublens logo" width="38" height="38" />
+        <span class="d-flex flex-column">
+          <span class="brand-name">Sublens</span>
+          <span class="brand-sub">MV3 Chrome Extension</span>
+        </span>
+      </a>
+      <a
+        data-store-link
+        href="#"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="cta-compact"
+      >
+        <span class="d-none d-sm-inline">Add to Chrome</span>
+        <i class="fas fa-download d-sm-none"></i>
+      </a>
+    </nav>
+
+    <section class="hero">
+      <img
+        class="hero-logo"
+        src="assets/icons/sublens-logo.png"
+        alt="Sublens logo"
+        width="96"
+        height="96"
+      />
+      <h1 class="fw-bold">Sublens</h1>
+      <h2>Translate &amp; learn from subtitles</h2>
+      <p class="lead-text">
+        Blur subtitles until you want to read them, then click, Ctrl+click or
+        drag-select any word for instant translation, dictionary definitions and
+        pronunciation.
+      </p>
+      <a
+        data-store-link
+        href="#"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="btn-primary-cta"
+      >
+        <i class="fab fa-chrome"></i> Add to Chrome
+      </a>
+      <p class="platforms">
+        Works on <i class="fab fa-youtube"></i> YouTube and
+        <i class="fas fa-film"></i> Netflix
+      </p>
+    </section>
+
+    <section class="features">
+      <div class="container">
+        <h2 class="section-title">Everything you need to learn while watching</h2>
+        <p class="section-subtitle">
+          Turn the subtitles you already watch into an active language lesson,
+          without leaving the player.
+        </p>
+        <div class="row g-4">
+          <div class="col-12 col-md-6 col-lg-4">
+            <div class="feature">
+              <div class="feature-icon"><i class="fas fa-eye-slash"></i></div>
+              <h3>Subtitle blur</h3>
+              <p>
+                Subtitles stay blurred by default so you can test your listening
+                first. Hover a line to reveal it when you need help.
+              </p>
+            </div>
+          </div>
+          <div class="col-12 col-md-6 col-lg-4">
+            <div class="feature">
+              <div class="feature-icon"><i class="fas fa-language"></i></div>
+              <h3>Click to translate</h3>
+              <p>
+                Click a word for its translation and dictionary entry, Ctrl+click
+                to add more words, or click-and-drag to select a whole phrase.
+              </p>
+            </div>
+          </div>
+          <div class="col-12 col-md-6 col-lg-4">
+            <div class="feature">
+              <div class="feature-icon"><i class="fas fa-volume-high"></i></div>
+              <h3>Pronunciation</h3>
+              <p>
+                The selected word or phrase is pronounced automatically in the
+                subtitle language, with a speaker button to replay it.
+              </p>
+            </div>
+          </div>
+          <div class="col-12 col-md-6 col-lg-4">
+            <div class="feature">
+              <div class="feature-icon"><i class="fas fa-pause"></i></div>
+              <h3>Auto-pause on hover</h3>
+              <p>
+                Hovering a subtitle pauses the video so you have time to read,
+                and pausing reveals every blurred line at once.
+              </p>
+            </div>
+          </div>
+          <div class="col-12 col-md-6 col-lg-4">
+            <div class="feature">
+              <div class="feature-icon"><i class="fas fa-arrow-rotate-left"></i></div>
+              <h3>Replay the last line</h3>
+              <p>
+                Press the Left Arrow key to jump back to the previous subtitle
+                and hear it again, instead of the player's default rewind.
+              </p>
+            </div>
+          </div>
+          <div class="col-12 col-md-6 col-lg-4">
+            <div class="feature">
+              <div class="feature-icon"><i class="fas fa-sliders"></i></div>
+              <h3>Your languages, your rules</h3>
+              <p>
+                Pick the subtitle (source) language or auto-detect it, choose
+                your translation language, and toggle Sublens per platform on
+                Netflix and YouTube independently.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="how">
+      <div class="container">
+        <h2 class="section-title">How it works</h2>
+        <p class="section-subtitle">Three steps, no setup.</p>
+        <div class="row g-4 justify-content-center">
+          <div class="col-12 col-md-4">
+            <div class="step">
+              <div class="step-number">1</div>
+              <h3>Install Sublens</h3>
+              <p>Add the extension to Chrome. There is nothing to configure to get started.</p>
+            </div>
+          </div>
+          <div class="col-12 col-md-4">
+            <div class="step">
+              <div class="step-number">2</div>
+              <h3>Open Netflix or YouTube</h3>
+              <p>
+                Play any title with subtitles on. On YouTube, turn captions on
+                with the CC button.
+              </p>
+            </div>
+          </div>
+          <div class="col-12 col-md-4">
+            <div class="step">
+              <div class="step-number">3</div>
+              <h3>Click any word</h3>
+              <p>
+                Hover to reveal a line, then click a word for its translation,
+                definition and pronunciation.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta-section">
+      <div class="container">
+        <h2>Start learning from what you already watch</h2>
+        <p>Free, private, and works right inside the player.</p>
+        <a
+          data-store-link
+          href="#"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="btn"
+        >
+          <i class="fab fa-chrome"></i> Add Sublens to Chrome
+        </a>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <p>Built by Matteo &middot; <a href="privacy.html">Privacy Policy</a></p>
+      <div class="footer-links">
+        <a
+          href="https://www.linkedin.com/in/matteo-lucerni-0725a526b/"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="me-2"
+          >LinkedIn <i class="fa-brands fa-linkedin ms-1"></i></a
+        >
+        |
+        <a
+          href="https://github.com/MatteoLucerni?tab=repositories"
+          target="_blank"
+          rel="noopener noreferrer"
+          >GitHub <i class="fa-brands fa-github ms-1"></i></a
+        >
+      </div>
+    </footer>
+
+    <script src="assets/js/store-link.js"></script>
+    <script src="assets/js/feedback-widget.js" defer></script>
+  </body>
+</html>

@@ -5,6 +5,16 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.13.0]
+
+### Added
+- First-run welcome page: on install the extension opens `https://getsublens.com/welcome.html` in a new tab with a getting-started guide. The existing in-page onboarding overlay is unchanged.
+- Build tooling: `build.ps1` packages the extension into a versioned `dist/Sublens-<version>-<timestamp>.zip` for the Chrome Web Store, reading the file list from `manifest.json`.
+- Marketing/documentation site under `docs/` (landing page, welcome page, privacy policy), published via GitHub Pages on getsublens.com.
+
+### Changed
+- Logging is now gated behind a single `DEV_MODE` flag in a new `env.js` (`self.DEV_MODE`), shared by the content scripts and the background service worker (`importScripts("env.js")`). In development logs stay on; the production build produced by `build.ps1` forces `self.DEV_MODE = false`, so a packaged build no longer writes `[NSE]` logs to the user's console. The background service worker logs, previously printed unconditionally, are now gated as well.
+
 ## [0.12.3]
 
 ### Fixed

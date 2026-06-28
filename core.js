@@ -1,4 +1,4 @@
-const DEBUG = true;
+const DEBUG = self.DEV_MODE ?? false;
 function log(...args) {
   if (DEBUG) console.log("[NSE]", ...args);
 }

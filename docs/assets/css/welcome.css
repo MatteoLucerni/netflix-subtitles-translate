@@ -1,0 +1,126 @@
+:root {
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #121417;
+  --bg-tertiary: #181b20;
+  --text-primary: #f5f7fa;
+  --text-secondary: #b9c0c9;
+  --text-tertiary: #8a929c;
+  --border-color: #23272e;
+  --accent: #38bdf8;
+  --accent-deep: #06283d;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    sans-serif;
+  background:
+    radial-gradient(circle at 50% -10%, rgba(56, 189, 248, 0.12), transparent 55%),
+    var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+.welcome-container {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 60px 24px 80px;
+}
+
+.welcome-header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+.welcome-logo {
+  width: 88px;
+  height: 88px;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(56, 189, 248, 0.25);
+}
+
+.welcome-title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin: 22px 0 8px;
+}
+
+.welcome-subtitle {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.welcome-card {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  padding: 24px 26px;
+  margin-bottom: 18px;
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+}
+
+.welcome-card .card-icon {
+  flex: 0 0 auto;
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: rgba(56, 189, 248, 0.12);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+
+.welcome-card h2 {
+  font-size: 1.15rem;
+  margin: 0 0 6px;
+}
+
+.welcome-card p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.97rem;
+}
+
+.welcome-card kbd {
+  background: #000;
+  border: 1px solid var(--border-color);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  padding: 1px 7px;
+  font-size: 0.82rem;
+  color: var(--text-primary);
+}
+
+.welcome-section-title {
+  font-size: 1.35rem;
+  font-weight: 600;
+  margin: 40px 0 18px;
+}
+
+.welcome-footer {
+  text-align: center;
+  margin-top: 50px;
+  color: var(--text-tertiary);
+  font-size: 0.9rem;
+}
+
+.welcome-footer a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+@media (max-width: 480px) {
+  .welcome-card {
+    flex-direction: column;
+    gap: 12px;
+  }
+}

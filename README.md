@@ -26,13 +26,17 @@ manifest.json     MV3 manifest
 background.js     Service worker: platform-aware player seek + Google Translate requests
 content.css       Styles for the subtitle overlay and dictionary popup
 popup.html/css/js Toolbar action popup with the settings controls
+env.js            Single DEV_MODE logging flag (self.DEV_MODE)
 icons/            Extension icons (16/32/48/128 px)
+build.ps1         Packages the extension into a versioned zip for the Chrome Web Store
+docs/             Marketing site (landing, welcome, privacy), published on getsublens.com
 ```
 
 The content-script logic is split across several classic scripts that share one
 isolated-world scope and are loaded in this exact order (see `manifest.json`):
 
 ```
+env.js            Sets self.DEV_MODE (logging flag); loaded first
 settings.js       Shared chrome.storage.sync helpers + language list
 platforms.js      Platform adapter (Netflix/YouTube): selectors, seek, lang detection
 core.js           Config constants, shared state, base helpers
@@ -45,12 +49,32 @@ content.js        Entry point: subtitle discovery, onboarding, init + event wiri
 The order matters: these files share globals, and only `content.js` (loaded last)
 runs top-level code.
 
+## Logging
+
+All logging is gated behind a single flag defined in `env.js`
+(`self.DEV_MODE`), shared by the content scripts and the background service
+worker (which loads it via `importScripts("env.js")`). In development the flag
+is `true` and `[NSE]` logs are printed. The production zip produced by
+`build.ps1` rewrites `env.js` to `self.DEV_MODE = false`, so a packaged build
+prints nothing to the user's console.
+
 ## Development setup
 
 1. Open `chrome://extensions` in Chrome.
 2. Enable **Developer mode** (top right).
 3. Click **Load unpacked** and select this repository's root folder.
 4. Open a Netflix video or a YouTube `/watch` video with subtitles enabled.
+
+On first install the extension opens a getting-started page
+(`https://getsublens.com/welcome.html`) in a new tab.
+
+## Building for the Chrome Web Store
+
+Run `./build.ps1` from the repository root. It reads `manifest.json`, collects
+exactly the files the extension references (manifest, content scripts,
+`content.css`, `background.js`, the popup and its assets, `env.js`, icons),
+forces `env.js` to `self.DEV_MODE = false`, and writes
+`dist/Sublens-<version>-<timestamp>.zip`.
 
 ## Permissions
 

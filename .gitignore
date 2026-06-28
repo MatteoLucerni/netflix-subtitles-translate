@@ -1,4 +1,5 @@
 # Packaged extension artifacts
+dist/
 *.zip
 *.crx
 *.pem

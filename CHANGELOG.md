@@ -5,6 +5,20 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.1.2]
+
+### Fixed
+- YouTube: pronunciation now uses the language actually shown on screen. For auto-translated caption tracks (e.g. "English >> Italian") the source-language detection read the original track language (English) instead of the translation language (Italian), so the selected word was pronounced in the wrong language. It now prefers the track's `translationLanguage` when present.
+
+### Changed
+- YouTube: lightened the subtitle background (from 75% to 60% opacity) and removed the vertical padding that made multi-line backgrounds overlap. The background now sits on the line block with horizontal padding only, so stacked lines tile into a continuous band instead of overlapping or leaving an empty gap. Netflix is unchanged.
+
+## [1.1.1]
+
+### Fixed
+- YouTube: subtitle overlays now have a semi-transparent black background (matching YouTube's native caption box), so white text stays readable over bright scenes. Netflix is unchanged.
+- YouTube: overlays no longer drift when the player controls appear (on mouse movement or pause), which previously made words shift slightly under the cursor. Overlay positions are now recomputed only when the cue content actually changes; YouTube's transient caption-window repositioning no longer moves the clickable words. Netflix keeps recomputing position on every reconcile as before.
+
 ## [1.1.0]
 
 ### Added

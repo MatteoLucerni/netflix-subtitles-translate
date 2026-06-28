@@ -25,6 +25,11 @@ html.nse-platform-youtube .ytp-caption-segment {
   visibility: hidden !important;
 }
 
+html.nse-platform-youtube .nse-overlay {
+  background-color: rgba(8, 8, 8, 0.6);
+  padding: 0 0.4em;
+}
+
 .nse-word {
   cursor: pointer;
 }

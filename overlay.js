@@ -160,6 +160,7 @@ function reconcileLines(lineContainers) {
   const newActiveLines = [];
   let hasNewCue = false;
   let hasRemovedCue = false;
+  let textChanged = false;
 
   for (const { lineEl, text } of incoming) {
     let matchIndex = activeLines.findIndex(
@@ -179,6 +180,7 @@ function reconcileLines(lineContainers) {
       if (line.lastText !== text) {
         line.overlay.replaceChildren(...buildTokens(text));
         line.lastText = text;
+        textChanged = true;
       }
       copyComputedStyles(line.overlay, findStyleSource(lineEl));
       newActiveLines.push(line);
@@ -200,7 +202,8 @@ function reconcileLines(lineContainers) {
   }
 
   activeLines = newActiveLines;
-  positionOverlayGroup(activeLines);
+  const layoutChanged = hasNewCue || hasRemovedCue || textChanged;
+  if (PLATFORM.name !== "youtube" || layoutChanged) positionOverlayGroup(activeLines);
 
   if (hasRemovedCue) markCueEnded();
   if (hasNewCue) recordCueStart();

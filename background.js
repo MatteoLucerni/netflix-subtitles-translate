@@ -107,7 +107,11 @@ async function getYouTubeSubtitleLang(tabId) {
         try {
           const player = document.getElementById("movie_player");
           const track = player?.getOption?.("captions", "track");
-          if (track?.languageCode) return track.languageCode;
+          if (track) {
+            const translated = track.translationLanguage?.languageCode;
+            if (translated) return translated;
+            if (track.languageCode) return track.languageCode;
+          }
           const tracks = window.ytInitialPlayerResponse?.captions
             ?.playerCaptionsTracklistRenderer?.captionTracks;
           if (Array.isArray(tracks) && tracks[0]?.languageCode) return tracks[0].languageCode;

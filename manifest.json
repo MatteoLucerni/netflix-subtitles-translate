@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Sublens - Translate & Learn from Subtitles",
   "short_name": "Sublens",
-  "description": "Blur subtitles until you want to see them, then click, Ctrl+click or drag-select any word for instant translation and dictionary definitions. Supports Netflix and YouTube.",
+  "description": "Blur subtitles until you want to see them, then click, Ctrl+click or drag-select any word for instant translation, dictionary definitions and pronunciation. Supports Netflix and YouTube.",
   "version": "0.12.3",
   "icons": {
     "16": "icons/icon16.png",

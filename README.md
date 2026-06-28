@@ -1,6 +1,6 @@
 # Subtitle Lens
 
-A Chrome extension (Manifest V3) that blurs subtitles until you want to read them, and turns subtitle words into clickable translations and dictionary lookups.
+A Chrome extension (Manifest V3) that blurs subtitles until you want to read them, and turns subtitle words into clickable translations, dictionary lookups and pronunciation.
 
 Supports Netflix and YouTube. The extension is built around a platform adapter so other streaming platforms can be added later without changing its identity.
 

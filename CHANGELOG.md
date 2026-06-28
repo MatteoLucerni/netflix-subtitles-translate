@@ -5,6 +5,11 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.12.0]
+
+### Added
+- Pronunciation: when you select a word or phrase, it is now pronounced automatically in the subtitle language as soon as the translation popup opens, and a speaker button in the popup lets you replay it. Audio is fetched through Google Translate's text-to-speech endpoint in the background service worker and played in the page. Add the **Pronounce selected word** toggle (default on) under the popup's advanced options to disable it.
+
 ## [0.11.0]
 
 ### Added

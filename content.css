@@ -46,10 +46,38 @@ html.nse-platform-youtube .ytp-caption-segment {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
 
+.nse-popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
 .nse-word-label {
   font-weight: bold;
   font-size: 15px;
-  margin-bottom: 4px;
+}
+
+.nse-popup-header .nse-word-label {
+  margin-bottom: 0;
+}
+
+.nse-tts-btn {
+  flex: 0 0 auto;
+  background: transparent;
+  border: none;
+  color: #38bdf8;
+  font-size: 16px;
+  line-height: 1;
+  padding: 2px 4px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: filter 0.15s ease;
+}
+
+.nse-tts-btn:hover {
+  filter: brightness(1.2);
 }
 
 .nse-translation {

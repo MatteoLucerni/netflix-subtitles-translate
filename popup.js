@@ -4,7 +4,8 @@ const TOGGLE_KEYS = [
   "jumpToPreviousSubtitleOnBack",
   "autoPauseOnHover",
   "subtitleBlurEnabled",
-  "autoRemoveBlurOnPause"
+  "autoRemoveBlurOnPause",
+  "pronunciationEnabled"
 ];
 
 const SELECT_KEYS = ["subtitleSourceLang", "translationTargetLang"];

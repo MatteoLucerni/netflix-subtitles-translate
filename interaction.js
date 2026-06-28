@@ -321,10 +321,30 @@ function renderPopupResult(popup, result) {
     return;
   }
 
+  const header = document.createElement("div");
+  header.className = "nse-popup-header";
+
   const wordLabel = document.createElement("div");
   wordLabel.className = "nse-word-label";
   wordLabel.textContent = result.word;
-  popup.appendChild(wordLabel);
+  header.appendChild(wordLabel);
+
+  const canPronounce = settings.pronunciationEnabled && isPronounceableLang(result.sourceLang);
+  if (canPronounce) {
+    const ttsBtn = document.createElement("button");
+    ttsBtn.type = "button";
+    ttsBtn.className = "nse-tts-btn";
+    ttsBtn.setAttribute("aria-label", "Pronounce");
+    ttsBtn.textContent = "🔊";
+    ttsBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      playPronunciation(result.word, result.sourceLang);
+    });
+    header.appendChild(ttsBtn);
+  }
+
+  popup.appendChild(header);
 
   const translation = document.createElement("div");
   translation.className = "nse-translation";
@@ -334,6 +354,34 @@ function renderPopupResult(popup, result) {
   appendEntries(popup, result.entries);
   appendDefinitions(popup, result.definitions);
   appendExamples(popup, result.examples);
+
+  if (canPronounce) playPronunciation(result.word, result.sourceLang);
+}
+
+function isPronounceableLang(lang) {
+  return typeof lang === "string" && lang && lang !== "auto";
+}
+
+async function playPronunciation(text, lang) {
+  if (!isPronounceableLang(lang) || typeof text !== "string" || !text.trim()) return;
+
+  if (currentTtsAudio) {
+    currentTtsAudio.pause();
+    currentTtsAudio = null;
+  }
+
+  let result;
+  try {
+    result = await chrome.runtime.sendMessage({ type: "tts", text, lang });
+  } catch (err) {
+    log("tts request threw", err);
+    return;
+  }
+  if (!result || result.error || !result.audio) return;
+
+  const audio = new Audio(result.audio);
+  currentTtsAudio = audio;
+  audio.play().catch((err) => log("tts playback blocked", err));
 }
 
 function showLoadingPopup(anchorRect, text) {

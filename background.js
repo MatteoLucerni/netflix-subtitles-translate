@@ -13,6 +13,20 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return true;
   }
 
+  if (msg?.type === "tts") {
+    if (typeof msg.text !== "string" || !msg.text.trim()) {
+      sendResponse({ error: true });
+      return;
+    }
+    fetchTts(msg.text, normalizeLang(msg.lang))
+      .then((audio) => sendResponse({ audio }))
+      .catch((err) => {
+        console.log("[NSE] tts failed", err);
+        sendResponse({ error: true });
+      });
+    return true;
+  }
+
   if (msg?.type !== "translate") return;
   if (typeof msg.word !== "string" || !msg.word.trim()) {
     console.log("[NSE] invalid word, rejecting");
@@ -181,8 +195,29 @@ async function translate(word, sl, tl) {
     translation: data[0]?.map((segment) => segment[0]).join("") ?? null,
     entries: data[1] ?? null,
     definitions,
-    examples: data[13]?.[0] ?? null
+    examples: data[13]?.[0] ?? null,
+    sourceLang: detectedSl
   };
+}
+
+async function fetchTts(text, lang) {
+  if (!lang || lang === "auto") throw new Error("tts language unavailable");
+
+  const url = new URL("https://translate.google.com/translate_tts");
+  url.searchParams.set("ie", "UTF-8");
+  url.searchParams.set("client", "tw-ob");
+  url.searchParams.set("tl", lang);
+  url.searchParams.set("q", text);
+
+  console.log("[NSE] fetching tts", url.toString());
+  const res = await fetch(url.toString());
+  if (!res.ok) throw new Error(`tts request failed: ${res.status}`);
+
+  const buffer = await res.arrayBuffer();
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+  return `data:audio/mpeg;base64,${btoa(binary)}`;
 }
 
 function extractDefinitionGroups(raw, maxGroups = 2, maxPerGroup = 2) {

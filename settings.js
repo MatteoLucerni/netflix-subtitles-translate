@@ -5,6 +5,7 @@ const NSE_SETTINGS_DEFAULTS = {
   autoPauseOnHover: true,
   subtitleBlurEnabled: true,
   autoRemoveBlurOnPause: true,
+  pronunciationEnabled: true,
   subtitleSourceLang: "auto",
   translationTargetLang: "en"
 };

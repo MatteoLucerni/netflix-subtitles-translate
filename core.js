@@ -43,6 +43,7 @@ let dragAnchor = null;
 let dragActive = false;
 let suppressClickAfterDrag = false;
 let translationPending = false;
+let currentTtsAudio = null;
 
 let cueHistory = [];
 let cueIndex = -1;

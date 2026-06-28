@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Changed
 - Shortened the Chrome Web Store `description` in the manifest to fit the 132-character limit (it was 186) and reframed it around the language-learning value proposition.
 - Updated the "Ctrl+Click" wording to "Ctrl/Cmd + Click" in the popup help section, the welcome and landing pages, and the README, to reflect macOS support.
-- Marketing site: upgraded the Twitter card to `summary_large_image`, added a Frequently Asked Questions section with matching `FAQPage` structured data, and renamed the README title from "Subtitle Lens" to "Sublens".
+- Marketing site: wired the "Add to Chrome" buttons to the published Chrome Web Store listing, upgraded the Twitter card to `summary_large_image`, added a Frequently Asked Questions section with matching `FAQPage` structured data, and renamed the README title from "Subtitle Lens" to "Sublens".
 
 ## [1.0.0]
 

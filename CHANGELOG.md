@@ -5,6 +5,11 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.1.0]
+
+### Added
+- Popup footer with three compact links under the help section: **Give feedback** (Google Form), **Changelog** (GitHub `CHANGELOG.md`), and **Website** (getsublens.com), each with a small external-link icon. All open in a new tab.
+
 ## [1.0.1]
 
 ### Fixed

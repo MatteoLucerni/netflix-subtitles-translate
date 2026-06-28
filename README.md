@@ -84,7 +84,7 @@ forces `env.js` to `self.DEV_MODE = false`, and writes
 
 ## Settings popup
 
-Click the extension icon in the toolbar to open the settings popup. It holds the subtitle and translation language selects, the **Enable on Netflix** / **Enable on YouTube** master toggles (which turn the extension on or off per platform), and the five behavior toggles under "advanced options". Each control has a "?" icon with a hover tooltip explaining its effect in detail. Settings are stored via `chrome.storage.sync` and applied live, no page reload required.
+Click the extension icon in the toolbar to open the settings popup. It holds the subtitle and translation language selects, the **Enable on Netflix** / **Enable on YouTube** master toggles (which turn the extension on or off per platform), and the five behavior toggles under "advanced options". Each control has a "?" icon with a hover tooltip explaining its effect in detail. Settings are stored via `chrome.storage.sync` and applied live, no page reload required. A footer at the bottom links out to **Give feedback**, the **Changelog**, and the **Website**.
 
 ## Word interaction guide
 

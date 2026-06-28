@@ -312,3 +312,35 @@ body {
 .nse-help-section b {
   color: var(--nse-text-primary);
 }
+
+.nse-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 16px;
+  padding: 12px 18px 14px;
+  background: var(--nse-bg-1);
+  border-top: 1px solid var(--nse-border);
+}
+
+.nse-footer-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--nse-text-secondary);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.nse-footer-link:hover,
+.nse-footer-link:focus {
+  color: var(--nse-blue);
+  outline: none;
+}
+
+.nse-footer-icon {
+  width: 11px;
+  height: 11px;
+  flex-shrink: 0;
+}

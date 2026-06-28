@@ -365,6 +365,7 @@ function isPronounceableLang(lang) {
 async function playPronunciation(text, lang) {
   if (!isPronounceableLang(lang) || typeof text !== "string" || !text.trim()) return;
 
+  const requestId = ++ttsRequestId;
   if (currentTtsAudio) {
     currentTtsAudio.pause();
     currentTtsAudio = null;
@@ -377,6 +378,7 @@ async function playPronunciation(text, lang) {
     log("tts request threw", err);
     return;
   }
+  if (requestId !== ttsRequestId) return;
   if (!result || result.error || !result.audio) return;
 
   const audio = new Audio(result.audio);

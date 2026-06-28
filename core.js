@@ -44,6 +44,7 @@ let dragActive = false;
 let suppressClickAfterDrag = false;
 let translationPending = false;
 let currentTtsAudio = null;
+let ttsRequestId = 0;
 
 let cueHistory = [];
 let cueIndex = -1;

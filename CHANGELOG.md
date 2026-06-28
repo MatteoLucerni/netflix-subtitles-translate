@@ -5,6 +5,11 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.12.1]
+
+### Fixed
+- Pronunciation: selecting words in quick succession no longer plays overlapping or stale audio. Each pronunciation request now carries a generation token and is discarded if a newer selection has started before its audio arrives (the previous request could not be cancelled mid-flight, so its audio still played for a word that was no longer selected).
+
 ## [0.12.0]
 
 ### Added

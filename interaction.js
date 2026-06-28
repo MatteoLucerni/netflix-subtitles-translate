@@ -109,8 +109,9 @@ function onSelectionEscape(e) {
 }
 
 async function translateAndShowPhrase(text, anchorRect) {
-  removePopupElement();
   translationPending = true;
+  const popup = showLoadingPopup(anchorRect, text);
+
   let result;
   try {
     result = await chrome.runtime.sendMessage({
@@ -125,7 +126,10 @@ async function translateAndShowPhrase(text, anchorRect) {
     result = { error: true };
   }
   translationPending = false;
-  showPopup(anchorRect, result);
+
+  if (!popup.isConnected) return;
+  renderPopupResult(popup, result);
+  positionPopup(popup, anchorRect);
 }
 
 function finalizeSelection(anchorRect) {
@@ -281,38 +285,62 @@ async function onWordClick(e) {
   await translateAndShowPhrase(word, anchorRect);
 }
 
-function showPopup(anchorRect, result) {
+function createPopup() {
   removePopupElement();
 
   const popup = document.createElement("div");
   popup.id = "nse-popup";
+  getAppendTarget().appendChild(popup);
+
+  document.addEventListener("click", onOutsideClick, { capture: true });
+  document.addEventListener("keydown", onEscape);
+  return popup;
+}
+
+function renderPopupLoading(popup, text) {
+  popup.replaceChildren();
+
+  const wordLabel = document.createElement("div");
+  wordLabel.className = "nse-word-label";
+  wordLabel.textContent = text;
+  popup.appendChild(wordLabel);
+
+  const loader = document.createElement("div");
+  loader.className = "nse-loader";
+  popup.appendChild(loader);
+}
+
+function renderPopupResult(popup, result) {
+  popup.replaceChildren();
 
   if (!result || result.error) {
     const error = document.createElement("div");
     error.className = "nse-error";
     error.textContent = "Translation unavailable";
     popup.appendChild(error);
-  } else {
-    const wordLabel = document.createElement("div");
-    wordLabel.className = "nse-word-label";
-    wordLabel.textContent = result.word;
-    popup.appendChild(wordLabel);
-
-    const translation = document.createElement("div");
-    translation.className = "nse-translation";
-    translation.textContent = result.translation ?? "-";
-    popup.appendChild(translation);
-
-    appendEntries(popup, result.entries);
-    appendDefinitions(popup, result.definitions);
-    appendExamples(popup, result.examples);
+    return;
   }
 
-  getAppendTarget().appendChild(popup);
-  positionPopup(popup, anchorRect);
+  const wordLabel = document.createElement("div");
+  wordLabel.className = "nse-word-label";
+  wordLabel.textContent = result.word;
+  popup.appendChild(wordLabel);
 
-  document.addEventListener("click", onOutsideClick, { capture: true });
-  document.addEventListener("keydown", onEscape);
+  const translation = document.createElement("div");
+  translation.className = "nse-translation";
+  translation.textContent = result.translation ?? "-";
+  popup.appendChild(translation);
+
+  appendEntries(popup, result.entries);
+  appendDefinitions(popup, result.definitions);
+  appendExamples(popup, result.examples);
+}
+
+function showLoadingPopup(anchorRect, text) {
+  const popup = createPopup();
+  renderPopupLoading(popup, text);
+  positionPopup(popup, anchorRect);
+  return popup;
 }
 
 function appendEntries(popup, entries) {
@@ -414,18 +442,32 @@ function positionPopup(popup, anchorViewportRect) {
   const subtitleBounds = getSubtitleBoundsRect();
 
   const blockTop = subtitleBounds ? Math.min(subtitleBounds.top, anchor.top) : anchor.top;
+  const blockBottom = subtitleBounds ? Math.max(subtitleBounds.bottom, anchor.bottom) : anchor.bottom;
   const centerX = subtitleBounds
     ? subtitleBounds.left + subtitleBounds.width / 2
     : window.scrollX + window.innerWidth / 2;
 
-  let top = blockTop - popupRect.height - 8;
-  let left = centerX - popupRect.width / 2;
+  const margin = 8;
+  const viewTop = window.scrollY + margin;
+  const viewBottom = window.scrollY + window.innerHeight - margin;
 
-  if (top < window.scrollY + 8) top = window.scrollY + 8;
-  if (left + popupRect.width > window.scrollX + window.innerWidth - 8) {
-    left = window.scrollX + window.innerWidth - popupRect.width - 8;
+  const video = getVideo();
+  const referenceCenter = video
+    ? (() => {
+        const vr = toDocumentRect(video.getBoundingClientRect());
+        return vr.top + vr.height / 2;
+      })()
+    : window.scrollY + window.innerHeight / 2;
+  const placeBelow = (blockTop + blockBottom) / 2 < referenceCenter;
+
+  let top = placeBelow ? blockBottom + margin : blockTop - popupRect.height - margin;
+  top = Math.max(viewTop, Math.min(top, viewBottom - popupRect.height));
+
+  let left = centerX - popupRect.width / 2;
+  if (left + popupRect.width > window.scrollX + window.innerWidth - margin) {
+    left = window.scrollX + window.innerWidth - popupRect.width - margin;
   }
-  if (left < window.scrollX + 8) left = window.scrollX + 8;
+  if (left < window.scrollX + margin) left = window.scrollX + margin;
 
   popup.style.top = `${top}px`;
   popup.style.left = `${left}px`;

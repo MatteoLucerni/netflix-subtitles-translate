@@ -5,6 +5,14 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.11.0]
+
+### Added
+- The dictionary popup now appears immediately with a loading spinner when you select a word or phrase, then fills in with the translation when it arrives, instead of staying hidden until the request completes. This avoids the impression that nothing happened on slower lookups.
+
+### Changed
+- The dictionary popup is now placed on the side of the subtitles where there is room: below the subtitles when they sit in the upper half of the player, above them when they sit in the lower half (previously it was always pinned above, which pushed it off-screen for top-positioned subtitles).
+
 ## [0.10.2]
 
 ### Fixed

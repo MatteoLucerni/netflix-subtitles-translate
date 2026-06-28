@@ -80,6 +80,22 @@ html.nse-platform-youtube .ytp-caption-segment {
   color: #ccc;
 }
 
+.nse-loader {
+  width: 18px;
+  height: 18px;
+  margin: 6px auto 2px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-top-color: #38bdf8;
+  border-radius: 50%;
+  animation: nse-spin 0.7s linear infinite;
+}
+
+@keyframes nse-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .nse-definitions {
   border-top: 1px solid rgba(255, 255, 255, 0.2);
   padding-top: 6px;

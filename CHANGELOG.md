@@ -5,6 +5,16 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.10.2]
+
+### Fixed
+- Disabling the extension while a subtitle is on screen no longer leaves that line blank: `removeAllOverlays` now restores the native subtitle element's visibility (it was left at `visibility: hidden`, so the native subtitle stayed invisible until the next cue, up to several seconds on Netflix).
+- YouTube: the native-caption hiding class is now added synchronously at content-script load (and reconciled to the real on/off state once settings load), instead of only after the async settings read, closing a window where native captions could briefly flash on first load.
+- Disabling a platform now tears down the video `ResizeObserver` and the `pause`/`play` listeners instead of leaving them attached for the page's lifetime.
+
+### Changed
+- `findSubtitleContainer` now reuses `findCanonicalContainer` for the selector-chain lookup instead of duplicating the loop.
+
 ## [0.10.1]
 
 ### Fixed

@@ -1,6 +1,7 @@
 let nseStarted = false;
 let subtitleObserver = null;
 let containerWatchdog = null;
+let videoResizeObserver = null;
 
 async function seekPlayer(timeMs) {
   if (!PLATFORM.usesBackgroundSeek) {
@@ -20,25 +21,23 @@ async function seekPlayer(timeMs) {
   }
 }
 
-function findSubtitleContainer() {
-  for (const selector of SELECTOR_CHAIN) {
-    const el = document.querySelector(selector);
-    if (el) {
-      log("container found via selector", selector, el);
-      return el;
-    }
-  }
-  const fallback = findStructuralFallback();
-  if (fallback) log("container found via structural fallback", fallback);
-  return fallback;
-}
-
 function findCanonicalContainer() {
   for (const selector of SELECTOR_CHAIN) {
     const el = document.querySelector(selector);
     if (el) return el;
   }
   return null;
+}
+
+function findSubtitleContainer() {
+  const canonical = findCanonicalContainer();
+  if (canonical) {
+    log("container found via selector", canonical);
+    return canonical;
+  }
+  const fallback = findStructuralFallback();
+  if (fallback) log("container found via structural fallback", fallback);
+  return fallback;
 }
 
 function findStructuralFallback() {
@@ -145,8 +144,20 @@ function observeVideoResize() {
   attachVideoListeners(video);
   if (video.dataset.nseResizeObserved) return;
   video.dataset.nseResizeObserved = "true";
-  const resizeObserver = new ResizeObserver(() => repositionAllOverlays());
-  resizeObserver.observe(video);
+  videoResizeObserver = new ResizeObserver(() => repositionAllOverlays());
+  videoResizeObserver.observe(video);
+}
+
+function teardownVideo() {
+  if (videoResizeObserver) {
+    videoResizeObserver.disconnect();
+    videoResizeObserver = null;
+  }
+  const video = getVideo();
+  if (video) {
+    delete video.dataset.nseResizeObserved;
+    detachVideoListeners(video);
+  }
 }
 
 function buildOnboarding() {
@@ -252,7 +263,6 @@ function startExtension() {
   if (nseStarted) return;
   nseStarted = true;
   log("startExtension");
-  document.documentElement.classList.add(`nse-platform-${PLATFORM.name}`);
   init();
   showOnboardingIfFirstRun();
 }
@@ -261,7 +271,6 @@ function stopExtension() {
   if (!nseStarted) return;
   nseStarted = false;
   log("stopExtension");
-  document.documentElement.classList.remove(`nse-platform-${PLATFORM.name}`);
   if (subtitleObserver) {
     subtitleObserver.disconnect();
     subtitleObserver = null;
@@ -270,6 +279,7 @@ function stopExtension() {
     containerWatchdog.disconnect();
     containerWatchdog = null;
   }
+  teardownVideo();
   cancelSelection();
   removePopup();
   removeAllOverlays();
@@ -280,7 +290,9 @@ function stopExtension() {
 }
 
 function applyEnabledState() {
-  if (isCurrentPlatformEnabled()) startExtension();
+  const enabled = isCurrentPlatformEnabled();
+  document.documentElement.classList.toggle(`nse-platform-${PLATFORM.name}`, enabled);
+  if (enabled) startExtension();
   else stopExtension();
 }
 
@@ -302,6 +314,8 @@ function onGlobalKeydown(e) {
 }
 
 log("content script loaded", location.href);
+
+document.documentElement.classList.add(`nse-platform-${PLATFORM.name}`);
 
 nseGetSettings().then((loaded) => {
   settings = loaded;

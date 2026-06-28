@@ -10,13 +10,22 @@ function blurUnheldOverlays() {
   }
 }
 
+function onVideoPause() {
+  if (settings.autoRemoveBlurOnPause) revealAllOverlays();
+}
+
 function attachVideoListeners(video) {
   if (video.dataset.nseListenersAttached) return;
   video.dataset.nseListenersAttached = "true";
-  video.addEventListener("pause", () => {
-    if (settings.autoRemoveBlurOnPause) revealAllOverlays();
-  });
+  video.addEventListener("pause", onVideoPause);
   video.addEventListener("play", blurUnheldOverlays);
+}
+
+function detachVideoListeners(video) {
+  if (!video.dataset.nseListenersAttached) return;
+  delete video.dataset.nseListenersAttached;
+  video.removeEventListener("pause", onVideoPause);
+  video.removeEventListener("play", blurUnheldOverlays);
 }
 
 function findStyleSource(lineEl) {
@@ -199,7 +208,10 @@ function reconcileLines(lineContainers) {
 
 function removeAllOverlays() {
   if (activeLines.length > 0) markCueEnded();
-  for (const line of activeLines) line.overlay.remove();
+  for (const line of activeLines) {
+    line.overlay.remove();
+    if (line.lineEl) line.lineEl.style.visibility = "";
+  }
   activeLines = [];
 }
 
